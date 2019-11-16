@@ -44,12 +44,14 @@ const LEFT = CELL * 8;
 const RIGHT = CELL * 6;
 const OBSTACLE = '*';
 const FREE = '.';
+const GHOST = 'g';
 let world = [
-    "**.**",
-    "**.**",
-    ".....",
-    "**.**",
-    "**.**"
+    "**.**.",
+    "**.**.",
+    "......",
+    "**.**.",
+    "*..**.",
+    "*....."
 ];
 
 const Direction = {"up": 1, "down": 2, "left": 3, "right": 4};
@@ -61,6 +63,7 @@ let nextDirection = Direction.up;
 
 let tilesGroup;
 let dotsGroup;
+let ghostsGroup;
 let score = 0;
 let multiplier = 1;
 
@@ -71,6 +74,44 @@ function preload() {
     this.load.image('dot', dot);
     this.load.image('pongPaddle', pongPaddleSprite);
     this.load.image('pongBall', pongBallSprite);
+}
+
+function initGhosts() {
+    this.anims.create({
+        key: 'red_right',
+        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 8, end: 9 }),
+        frameRate: 2,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'red_left',
+        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 10, end: 11 }),
+        frameRate: 2,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'red_up',
+        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 12, end: 13 }),
+        frameRate: 2,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'red_down',
+        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 14, end: 15 }),
+        frameRate: 2,
+        repeat: -1
+    });
+
+    const redGhost = this.physics.add.sprite(CELL*5.5, CELL*5.5, 'pacmanSheet');
+
+    redGhost.play('red_right');
+    redGhost.setDisplaySize(PACSIZE, PACSIZE);
+    redGhost.direction = Direction.up;
+
+    ghostsGroup.add(redGhost)
 }
 
 function create() {
@@ -121,9 +162,16 @@ function create() {
     pongBall.setVelocity(1000, 200);
     pongBall.setBounce(1);
 
+    // order matters!
     initWorld.call(this);
+    initGhosts.call(this);
+    setColliders.call(this);
+}
+
+function setColliders() {
     this.physics.add.collider(pacman, tilesGroup);
     this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
+    this.physics.add.collider(pacman, ghostsGroup, collideWithGhost, null, this);
     this.physics.add.collider(aiPaddle, pongBall);
     this.physics.add.collider(userPaddle, pongBall);
 }
@@ -133,15 +181,57 @@ function eatDot(pacman, dot) {
    score += multiplier;
 }
 
+function collideWithGhost(pacman, ghost) {
+    // TODO
+}
+
 function updateScore() {
     scoreText.setText("score: " + score);
 }
 
+function getDirectionForGhost(ghost) {
+    return Phaser.Math.Between(1, 4);
+}
+
+function updateGhosts() {
+    const gs = ghostsGroup.children.entries;
+    for (let i = 0; i < gs.length; i++) {
+        const g = gs[i];
+        const nextGhostDirection = getDirectionForGhost(g);
+        if (canGo(g, nextGhostDirection)) {
+            g.direction = nextGhostDirection;
+        }
+        moveGhost.call(this, g)
+        //console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
+    }
+}
+
+function moveGhost(g) {
+    if (g.direction === Direction.left) {
+        g.setVelocityX(-CELL);
+        g.setVelocityY(0);
+        g.anims.play('red_left', true);
+    } else if (g.direction === Direction.right) {
+        g.setVelocityX(CELL);
+        g.setVelocityY(0);
+        g.anims.play('red_right', true);
+    } else if (g.direction === Direction.down) {
+        g.setVelocityX(0);
+        g.setVelocityY(CELL);
+        g.anims.play('red_down', true);
+    } else if (g.direction === Direction.up) {
+        g.setVelocityX(0);
+        g.setVelocityY(-CELL);
+        g.anims.play('red_up', true);
+    }
+}
+
 function update() {
     updateScore.call(this);
-    handleKeyboard.call(this);
-    handleMouse.call(this);
+    updateGhosts.call(this);
     updateAiPaddle.call(this);
+    handleKeyboard();
+    handleMouse();
 }
 
 function updateAiPaddle() {
@@ -191,42 +281,44 @@ function handleKeyboard() {
         pacman.anims.play('up', true);
     }
 
-    const pacmanRectangle = pacman.getBounds();
+    const pacmanCanGo = canGo(pacman, nextDirection);
+
+    if (pacmanCanGo) {
+        direction = nextDirection;
+    }
+}
+
+// checks if the given game object may move in the given direction
+function canGo(gameObject, direction) {
+    const rectangle = pacman.getBounds();
     let dx = 0, dy = 0;
-    if (nextDirection === Direction.left) {
+    if (direction === Direction.left) {
         dx = -7;
     }
-    if (nextDirection === Direction.right) {
+    if (direction === Direction.right) {
         dx = 7;
     }
-    if (nextDirection === Direction.down) {
+    if (direction === Direction.down) {
         dy = 7;
     }
-    if (nextDirection === Direction.up) {
+    if (direction === Direction.up) {
         dy = -7;
     }
-    const nextFramePacmanRectangle =
-        new Phaser.Geom.Rectangle(pacmanRectangle.left + dx, pacmanRectangle.top + dy, PACSIZE, PACSIZE);
+    const nextFrameRectangle =
+        new Phaser.Geom.Rectangle(rectangle.left + dx, rectangle.top + dy, PACSIZE, PACSIZE);
 
     let overlaps = false;
 
-    if (nextDirection === direction) {
-        return;
-    }
     const tiles = tilesGroup.children.entries;
     for (let i = 0; i < tiles.length; i++) {
         const tile = tiles[i];
-        if (Phaser.Geom.Rectangle.Overlaps(nextFramePacmanRectangle, tile.getBounds())) {
+        if (Phaser.Geom.Rectangle.Overlaps(nextFrameRectangle, tile.getBounds())) {
             overlaps = true;
-            console.log(overlaps)
         }
-        console.log("Checking if", nextFramePacmanRectangle, " and ", tile.getBounds(), " do overlap")
+        //console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
     }
 
-    if (!overlaps) {
-        console.log("No overlap!!!");
-        direction = nextDirection;
-    }
+    return !overlaps;
 }
 
 function handleMouse() {
@@ -239,13 +331,14 @@ function makeObjectAtCell(x, y, group, key) {
     x = LEFT + x * CELL + CELL / 2;
     y = RIGHT + y * CELL + CELL / 2;
 
-    group.create(x, y, key);
+    return group.create(x, y, key);
 }
 
 // creates and draws the physics world (pWorld)
 function initWorld() {
     tilesGroup = this.physics.add.staticGroup();
     dotsGroup = this.physics.add.staticGroup();
+    ghostsGroup = this.physics.add.staticGroup();
     for (let i = 0; i < world.length; i++) {
         const row = world[i];
         for (let j = 0; j < row.length; j++) {
@@ -254,6 +347,9 @@ function initWorld() {
             }
             else if (row[j] === FREE) {
                 makeObjectAtCell(j, i, dotsGroup,'dot');
+            }
+            else if (row[j] === GHOST) {
+                makeObjectAtCell(j, i, ghostsGroup, 'ghost')
             }
         }
     }
