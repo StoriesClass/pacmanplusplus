@@ -149,7 +149,7 @@ function create() {
     // A hack so pacman can easily can get between the tiles
     pacman.setDisplaySize(PACSIZE, PACSIZE);
     cursors = this.input.keyboard.createCursorKeys();
-    input = this.input.mousePointer;
+    input = this.input;
     scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
     aiPaddle = this.physics.add.sprite(10, 300, 'pongPaddle');
     aiPaddle.setCollideWorldBounds(true);
