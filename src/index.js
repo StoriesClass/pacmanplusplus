@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import tile from "./assets/tile.png";
 import pacmanSheet from "./assets/basic_pacman.png";
 import dot from "./assets/dot.png";
+import marioSheet from "./assets/mario_jump.png";
 import pongPaddleSprite from "./assets/pong_paddle.png";
 import pongBallSprite from "./assets/pong_ball.png";
 
@@ -34,8 +35,10 @@ const game = new Phaser.Game(config);
 let cursors;
 let input;
 
+let mario;
 let pacman;
 let scoreText;
+let moneyText;
 let aiPaddle;
 let userPaddle;
 let pongBall;
@@ -64,10 +67,12 @@ let nextDirection = Direction.up;
 let tilesGroup;
 let dotsGroup;
 let score = 0;
+let money = 0;
 let multiplier = 1;
 
 function preload() {
     this.load.spritesheet('pacmanSheet', pacmanSheet, {frameWidth: 14, frameHeight: 14});
+    this.load.spritesheet('marioSheet', marioSheet, {frameWidth: 200, frameHeight: 800});
 
     this.load.image('tile', tile);
     this.load.image('dot', dot);
@@ -138,6 +143,13 @@ function create() {
         repeat: -1
     });
 
+    this.anims.create({
+        key: 'marioJump',
+        frames: this.anims.generateFrameNumbers('marioSheet', {start: 1, end: 0}),
+        frameRate: 4,
+        repeat: 0
+    });
+
     pacman = this.physics.add.sprite(CELL * 2.5, CELL * 2.5, 'pacmanSheet');
     pacman.play('right');
     pacman.setCollideWorldBounds(true);
@@ -146,9 +158,13 @@ function create() {
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.mousePointer;
     scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
+    moneyText = this.add.text(500, 16, 'money: 0', {fontSize: '32px', fill: '#fff'});
     aiPaddle = this.physics.add.sprite(10, 100, 'pongPaddle');
     userPaddle = this.physics.add.sprite(WIDTH - 10, 100, 'pongPaddle');
     pongBall = this.physics.add.sprite(400, 100, 'pongBall');
+
+    mario = this.add.sprite(200, 400, 'marioSheet');
+    mario.setDisplaySize(CELL, CELL * 4);
 
     initGhosts.call(this);
 
@@ -166,17 +182,27 @@ function updateScore() {
     scoreText.setText("score: " + score);
 }
 
+function updateMoney() {
+    moneyText.setText("money: " + money);
+}
+
 function updateGhosts() {
 
 }
 
 function update() {
     updateScore.call(this);
+    updateMoney.call(this);
     handleKeyboard();
     handleMouse();
 }
 
 function handleKeyboard() {
+    if (cursors.space.isDown) {
+        mario.play('marioJump', true);
+        money++;
+    }
+
     if (cursors.left.isDown) {
         if (direction === Direction.right) {
             direction = Direction.left;
