@@ -171,7 +171,7 @@ function create() {
     // A hack so pacman can easily can get between the tiles
     pacman.setDisplaySize(PACSIZE, PACSIZE);
     cursors = this.input.keyboard.createCursorKeys();
-    input = this.input;
+    input = this.input.activePointer;
 
     scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
     moneyText = this.add.text(500, 16, 'money: 0', {fontSize: '32px', fill: '#fff'});
