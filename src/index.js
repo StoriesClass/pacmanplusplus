@@ -1,11 +1,15 @@
 import Phaser from "phaser";
-import pacmanSheet from "./assets/basic_pacman.png"
+import tile from "./assets/tile.png";
+import pacmanSheet from "./assets/basic_pacman.png";
+
+const WIDTH = 800;
+const HEIGHT = 600;
 
 const config = {
     type: Phaser.AUTO,
     parent: "phaser-example",
-    width: 800,
-    height: 600,
+    width: WIDTH,
+    height: HEIGHT,
     physics: {
         default: 'arcade',
         arcade: {
@@ -26,8 +30,23 @@ let cursors;
 let pacman;
 let scoreText;
 
+const OBSTACLE = '*';
+const FREE = '.';
+let world = [
+    ["**.**"],
+    ["**.**"],
+    ["....."],
+    ["**.**"],
+    ["**.**"]
+];
+
+// Representation of the world above in Phaser's physics system. Filled and drawn in create.
+let pWorld;
+
 function preload() {
     this.load.spritesheet('pacmanSheet', pacmanSheet, { frameWidth: 14, frameHeight: 14})
+
+    this.load.image('tile', tile);
 }
 
 function create() {
@@ -64,19 +83,48 @@ function create() {
     pacman.setCollideWorldBounds(true);
     cursors = this.input.keyboard.createCursorKeys();
     scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+
+    initWorld.call(this);
+    this.physics.add.collider(pacman, pWorld);
 }
 
 function update() {
     if (cursors.left.isDown) {
+        pacman.setVelocityX(-40);
+        pacman.setVelocityY(0);
         pacman.anims.play('left', true);
     }
     else if (cursors.right.isDown) {
+        pacman.setVelocityX(40);
+        pacman.setVelocityY(0);
         pacman.anims.play('right', true);
     }
     else if (cursors.down.isDown) {
+        pacman.setVelocityX(0);
+        pacman.setVelocityY(40);
         pacman.anims.play('down', true);
     }
     else if (cursors.up.isDown) {
+        pacman.setVelocityX(0);
+        pacman.setVelocityY(-40);
         pacman.anims.play('up', true);
+    }
+}
+
+// creates and draws the physics world (pWorld)
+function initWorld() {
+    console.log("init");
+    pWorld = this.physics.add.staticGroup();
+    let x = 0;
+    let y = 0;
+    for(let i = 0; i < world.length; i++) {
+        const row = world[i];
+        for(let j = 0; j < row.length; j++) {
+            if (row[j] == OBSTACLE) {
+                pWorld.create(x, y, 'tile');
+                x += 40;
+            }
+            y += 40;
+        }
     }
 }
