@@ -109,14 +109,23 @@ function create() {
     pacman.setDisplaySize(PACSIZE, PACSIZE);
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.mousePointer;
-    scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
-    aiPaddle = this.physics.add.sprite(10, 100, 'pongPaddle');
-    userPaddle = this.physics.add.sprite(WIDTH - 10, 100, 'pongPaddle');
-    pongBall = this.physics.add.sprite(400, 100, 'pongBall');
+    scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
+    aiPaddle = this.physics.add.sprite(10, 300, 'pongPaddle');
+    aiPaddle.setCollideWorldBounds(true);
+    aiPaddle.setBounce(1);
+    userPaddle = this.physics.add.sprite(WIDTH - 10, 300, 'pongPaddle');
+    userPaddle.setCollideWorldBounds(true);
+    userPaddle.setBounce(1);
+    pongBall = this.physics.add.sprite(35, 300, 'pongBall');
+    pongBall.setCollideWorldBounds(true);
+    pongBall.setVelocity(1000, 200);
+    pongBall.setBounce(1);
 
     initWorld.call(this);
     this.physics.add.collider(pacman, tilesGroup);
     this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
+    this.physics.add.collider(aiPaddle, pongBall);
+    this.physics.add.collider(userPaddle, pongBall);
 }
 
 function eatDot(pacman, dot) {
@@ -130,8 +139,15 @@ function updateScore() {
 
 function update() {
     updateScore.call(this);
-    handleKeyboard();
-    handleMouse();
+    handleKeyboard.call(this);
+    handleMouse.call(this);
+    updateAiPaddle.call(this);
+}
+
+function updateAiPaddle() {
+    aiPaddle.body.y = pongBall.body.y + pongBall.height / 2 - aiPaddle.height / 2;
+    aiPaddle.body.y = Math.max(aiPaddle.body.y, 0);
+    aiPaddle.body.y = Math.min(aiPaddle.body.y, HEIGHT - aiPaddle.height);
 }
 
 function handleKeyboard() {
@@ -214,9 +230,9 @@ function handleKeyboard() {
 }
 
 function handleMouse() {
-    userPaddle.y += input.velocity.y / 3;
-    userPaddle.y = Math.max(userPaddle.y, userPaddle.height / 2);
-    userPaddle.y = Math.min(userPaddle.y, HEIGHT - userPaddle.height / 2);
+    userPaddle.body.velocity.y = (input.y - userPaddle.body.y - userPaddle.height / 2) * 100;
+    userPaddle.body.velocity.y = Math.min(userPaddle.body.velocity.y, 1000);
+    userPaddle.body.velocity.y = Math.max(userPaddle.body.velocity.y, -1000);
 }
 
 function makeObjectAtCell(x, y, group, key) {
