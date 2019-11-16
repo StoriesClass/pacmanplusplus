@@ -6,8 +6,8 @@ import marioSheet from "./assets/mario_jump.png";
 import pongPaddleSprite from "./assets/pong_paddle.png";
 import pongBallSprite from "./assets/pong_ball.png";
 
-const WIDTH = 800;
-const HEIGHT = 600;
+const WIDTH = 1200;
+const HEIGHT = 1000;
 const CELL = 40;
 const PACSIZE = 36;
 
@@ -51,13 +51,36 @@ const OBSTACLE = '*';
 const FREE = '.';
 const GHOST = 'g';
 let world = [
-    "**.**.",
-    "**.**g",
-    "..g...",
-    "**.**.",
-    "*..**.",
-    "*..g.."
-];
+    "     *       *         ",
+    " * *** *** * * ******* ",
+    " *   *   * *   *     * ",
+    " *** * *** ********* * ",
+    "   *   *   *     *   * ",
+    "** ***** *** *** * *** ",
+    "   *   *   * * * *     ",
+    " ***** *** * * * * ****",
+    "  g      *    g* * *   ",
+    "**** *********** * * * ",
+    " *   *   *   *   *   * ",
+    " * *** * * * * *** ****",
+    "     * * * *   *   *   ",
+    " ** ** * *  * *** ** * ",
+    "       * *  g      * * ",
+    " * ** ** *** * *** * **",
+    " * *   *     *   * * * ",
+    " * * * ***** *** * * * ",
+    " *   *   * *   * * * * ",
+    " ** **** * *** *** * * ",
+    " *   *   *   * *  g*   ",
+    "** * * *** * * * * *** ",
+    "       *   * * * *   * ",
+    " ******* ***   * *** * ",
+    "   *   *   * *   *     ",
+    " * * * * * *** *** ****",
+    " *   *   *     *   *   ",
+    " *** ******* *** ***** ",
+    "   *                  *"
+] ;
 
 const Direction = {"up": 1, "down": 2, "left": 3, "right": 4};
 // making enum
@@ -265,23 +288,25 @@ function updateDirection(object, directionIntent) {
     object.nextDirection = directionIntent;
 }
 
+const PACSPEED = 3;
+
 function moveObject(object) {
     const direction = object.direction;
     if (direction === Direction.left) {
-        object.setVelocityX(-CELL);
+        object.setVelocityX(-CELL*PACSPEED);
         object.setVelocityY(0);
         object.anims.play(object.myAnim.left, true);
     } else if (direction === Direction.right) {
-        object.setVelocityX(CELL);
+        object.setVelocityX(CELL*PACSPEED);
         object.setVelocityY(0);
         object.anims.play(object.myAnim.right, true);
     } else if (direction === Direction.down) {
         object.setVelocityX(0);
-        object.setVelocityY(CELL);
+        object.setVelocityY(CELL*PACSPEED);
         object.anims.play(object.myAnim.down, true);
     } else if (direction === Direction.up) {
         object.setVelocityX(0);
-        object.setVelocityY(-CELL);
+        object.setVelocityY(-CELL*PACSPEED);
         object.anims.play(object.myAnim.up, true);
     }
 }
@@ -368,8 +393,8 @@ function handleMouse() {
 }
 
 function makeObjectAtCell(x, y, group, key) {
-    x = LEFT + x * CELL + CELL / 2;
-    y = RIGHT + y * CELL + CELL / 2;
+    x = x * CELL + CELL / 2;
+    y = y * CELL + CELL / 2;
 
     return group.create(x, y, key);
 }
