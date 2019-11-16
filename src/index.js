@@ -52,11 +52,11 @@ const FREE = '.';
 const GHOST = 'g';
 let world = [
     "**.**.",
-    "**.**.",
-    "......",
+    "**.**g",
+    "..g...",
     "**.**.",
     "*..**.",
-    "*....."
+    "*..g.."
 ];
 
 const Direction = {"up": 1, "down": 2, "left": 3, "right": 4};
@@ -83,53 +83,32 @@ function preload() {
 function initGhosts() {
     this.anims.create({
         key: 'red_right',
-        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 8, end: 9 }),
+        frames: this.anims.generateFrameNumbers('pacmanSheet', {start: 8, end: 9}),
         frameRate: 2,
         repeat: -1
     });
 
     this.anims.create({
         key: 'red_left',
-        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 10, end: 11 }),
+        frames: this.anims.generateFrameNumbers('pacmanSheet', {start: 10, end: 11}),
         frameRate: 2,
         repeat: -1
     });
 
     this.anims.create({
         key: 'red_up',
-        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 12, end: 13 }),
+        frames: this.anims.generateFrameNumbers('pacmanSheet', {start: 12, end: 13}),
         frameRate: 2,
         repeat: -1
     });
 
     this.anims.create({
         key: 'red_down',
-        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 14, end: 15 }),
+        frames: this.anims.generateFrameNumbers('pacmanSheet', {start: 14, end: 15}),
         frameRate: 2,
         repeat: -1
     });
 
-    const redGhost = this.physics.add.sprite(CELL*5.5, CELL*5.5, 'pacmanSheet');
-    redGhost.myAnim = {
-        'left': 'red_left',
-        'right': 'red_right',
-        'up': 'red_up',
-        'down': 'red_down'
-    };
-
-    redGhost.play('red_right');
-    redGhost.setDisplaySize(PACSIZE, PACSIZE);
-    redGhost.direction = Direction.up;
-    redGhost.setCollideWorldBounds();
-
-    ghostsGroup.add(redGhost);
-
-    this.time.addEvent({
-        delay: 4000,
-        callback: () => changeGhostDirection(redGhost),
-        callbackScope: this,
-        loop: true
-    });
 }
 
 function create() {
@@ -215,8 +194,8 @@ function setColliders() {
 }
 
 function eatDot(pacman, dot) {
-   dot.disableBody(true, true);
-   score += multiplier;
+    dot.disableBody(true, true);
+    score += multiplier;
 }
 
 function collideWithGhost(pacman, ghost) {
@@ -241,7 +220,6 @@ function updateGhosts() {
         moveObject(gs[i]);
     }
 }
-
 function changeGhostDirection(g) {
     g.nextDirection = getDirectionForGhost(g);
     if (canGo(g)) {
@@ -277,7 +255,7 @@ function updateDirection(object, directionIntent) {
         }
     } else if (directionIntent === Direction.down) {
         if (object.direction === Direction.up) {
-           object.direction = Direction.down;
+            object.direction = Direction.down;
         }
     } else if (directionIntent === Direction.up) {
         if (object.direction === Direction.down) {
@@ -396,6 +374,32 @@ function makeObjectAtCell(x, y, group, key) {
     return group.create(x, y, key);
 }
 
+function initGhost(x, y) {
+    const ghost = this.physics.add.sprite(LEFT + x * CELL + CELL / 2, RIGHT + y * CELL + CELL / 2, 'pacmanSheet');
+    ghost.myAnim = {
+        'left': 'red_left',
+        'right': 'red_right',
+        'up': 'red_up',
+        'down': 'red_down'
+    };
+
+    ghost.play('red_right');
+    ghost.setDisplaySize(PACSIZE, PACSIZE);
+    ghost.direction = Direction.up;
+    ghost.setCollideWorldBounds();
+
+    ghostsGroup.add(ghost);
+
+    this.time.addEvent({
+        delay: 4000,
+        callback: () => changeGhostDirection(ghost),
+        callbackScope: this,
+        loop: true
+    });
+
+    this.physics.add.collider(ghost, tilesGroup, null, () => changeGhostDirection(ghost), this);
+}
+
 // creates and draws the physics world (pWorld)
 function initWorld() {
     tilesGroup = this.physics.add.staticGroup();
@@ -406,12 +410,10 @@ function initWorld() {
         for (let j = 0; j < row.length; j++) {
             if (row[j] === OBSTACLE) {
                 makeObjectAtCell(j, i, tilesGroup, 'tile');
-            }
-            else if (row[j] === FREE) {
-                makeObjectAtCell(j, i, dotsGroup,'dot');
-            }
-            else if (row[j] === GHOST) {
-                makeObjectAtCell(j, i, ghostsGroup, 'ghost')
+            } else if (row[j] === FREE) {
+                makeObjectAtCell(j, i, dotsGroup, 'dot');
+            } else if (row[j] === GHOST) {
+                initGhost.call(this, j, i)
             }
         }
     }
