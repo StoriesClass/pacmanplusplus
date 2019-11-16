@@ -11,6 +11,10 @@ const HEIGHT = 600;
 const CELL = 40;
 const PACSIZE = 36;
 
+const PADDLE_WIDTH = 20;
+const PADDLE_LENGTH_DELTA = 50;
+const PADDLE_COST = 10;
+
 const config = {
     type: Phaser.AUTO,
     parent: "phaser-example",
@@ -38,7 +42,7 @@ let input;
 let mario;
 let pacman;
 let scoreText;
-let moneyText;
+let coinsText;
 let aiPaddle;
 let userPaddle;
 let pongBall;
@@ -67,8 +71,9 @@ let tilesGroup;
 let dotsGroup;
 let ghostsGroup;
 let score = 0;
-let money = 0;
+let coins = 0;
 let multiplier = 1;
+let paddleLength = 100;
 
 function preload() {
     this.load.spritesheet('pacmanSheet', pacmanSheet, {frameWidth: 14, frameHeight: 14});
@@ -164,7 +169,7 @@ function create() {
     this.anims.create({
         key: 'marioJump',
         frames: this.anims.generateFrameNumbers('marioSheet', {start: 1, end: 0}),
-        frameRate: 10,
+        frameRate: 20,
         repeat: 0
     });
 
@@ -184,13 +189,14 @@ function create() {
     input = this.input.activePointer;
 
     scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
-    moneyText = this.add.text(500, 16, 'money: 0', {fontSize: '32px', fill: '#fff'});
+    coinsText = this.add.text(600, 16, 'coins: 0', {fontSize: '32px', fill: '#fff'});
     aiPaddle = this.physics.add.sprite(10, 300, 'pongPaddle');
     aiPaddle.setCollideWorldBounds(true);
     aiPaddle.setBounce(1);
     userPaddle = this.physics.add.sprite(WIDTH - 10, 300, 'pongPaddle');
     userPaddle.setCollideWorldBounds(true);
     userPaddle.setBounce(1);
+    userPaddle.setDisplaySize(PADDLE_WIDTH, paddleLength);
     pongBall = this.physics.add.sprite(35, 300, 'pongBall');
     pongBall.setCollideWorldBounds(true);
     pongBall.setVelocity(1000, 200);
@@ -204,6 +210,9 @@ function create() {
     initWorld.call(this);
     initGhosts.call(this);
     setColliders.call(this);
+
+    this.add.text(32, 550, '"P" to upgrade paddle for ' + PADDLE_COST + ' coins', {fontSize: '20px', fill: '#fff'});
+    this.input.keyboard.on('keydown_P', upgradePaddle, this);
 }
 
 function setColliders() {
@@ -228,7 +237,7 @@ function updateScore() {
 }
 
 function updateMoney() {
-    moneyText.setText("money: " + money);
+    coinsText.setText("coins: " + coins);
 }
 
 function getDirectionForGhost(ghost) {
@@ -322,7 +331,7 @@ function handleMario() {
 
 function marioFinishesJumping() {
     marioJumping = false;
-    money++;
+    coins++;
 }
 
 function handleKeyboard() {
@@ -414,5 +423,13 @@ function initWorld() {
                 makeObjectAtCell(j, i, ghostsGroup, 'ghost')
             }
         }
+    }
+}
+
+function upgradePaddle() {
+    if (coins >= PADDLE_COST) {
+        coins -= PADDLE_COST;
+        paddleLength += PADDLE_LENGTH_DELTA;
+        userPaddle.setDisplaySize(PADDLE_WIDTH, paddleLength);
     }
 }
