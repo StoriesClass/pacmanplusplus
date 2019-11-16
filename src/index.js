@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import tile from "./assets/tile.png";
 import pacmanSheet from "./assets/basic_pacman.png";
 import dot from "./assets/dot.png";
+import marioSheet from "./assets/mario_jump.png";
 import pongPaddleSprite from "./assets/pong_paddle.png";
 import pongBallSprite from "./assets/pong_ball.png";
 
@@ -34,11 +35,14 @@ const game = new Phaser.Game(config);
 let cursors;
 let input;
 
+let mario;
 let pacman;
 let scoreText;
+let moneyText;
 let aiPaddle;
 let userPaddle;
 let pongBall;
+let marioJumping = false;
 
 const LEFT = CELL * 8;
 const RIGHT = CELL * 6;
@@ -65,10 +69,12 @@ let tilesGroup;
 let dotsGroup;
 let ghostsGroup;
 let score = 0;
+let money = 0;
 let multiplier = 1;
 
 function preload() {
     this.load.spritesheet('pacmanSheet', pacmanSheet, {frameWidth: 14, frameHeight: 14});
+    this.load.spritesheet('marioSheet', marioSheet, {frameWidth: 200, frameHeight: 800});
 
     this.load.image('tile', tile);
     this.load.image('dot', dot);
@@ -110,8 +116,16 @@ function initGhosts() {
     redGhost.play('red_right');
     redGhost.setDisplaySize(PACSIZE, PACSIZE);
     redGhost.direction = Direction.up;
+    redGhost.setCollideWorldBounds();
 
-    ghostsGroup.add(redGhost)
+    ghostsGroup.add(redGhost);
+
+    let timer = this.time.addEvent({
+        delay: 4,
+        callback: moveGhost(redGhost),
+        callbackScope: this,
+        loop: true
+    })
 }
 
 function create() {
@@ -143,6 +157,13 @@ function create() {
         repeat: -1
     });
 
+    this.anims.create({
+        key: 'marioJump',
+        frames: this.anims.generateFrameNumbers('marioSheet', {start: 1, end: 0}),
+        frameRate: 4,
+        repeat: 0
+    });
+
     pacman = this.physics.add.sprite(CELL * 2.5, CELL * 2.5, 'pacmanSheet');
     pacman.play('right');
     pacman.setCollideWorldBounds(true);
@@ -150,7 +171,9 @@ function create() {
     pacman.setDisplaySize(PACSIZE, PACSIZE);
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input;
+
     scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
+    moneyText = this.add.text(500, 16, 'money: 0', {fontSize: '32px', fill: '#fff'});
     aiPaddle = this.physics.add.sprite(10, 300, 'pongPaddle');
     aiPaddle.setCollideWorldBounds(true);
     aiPaddle.setBounce(1);
@@ -161,6 +184,9 @@ function create() {
     pongBall.setCollideWorldBounds(true);
     pongBall.setVelocity(1000, 200);
     pongBall.setBounce(1);
+
+    mario = this.add.sprite(200, 400, 'marioSheet');
+    mario.setDisplaySize(CELL, CELL * 4);
 
     // order matters!
     initWorld.call(this);
@@ -189,6 +215,10 @@ function updateScore() {
     scoreText.setText("score: " + score);
 }
 
+function updateMoney() {
+    moneyText.setText("money: " + money);
+}
+
 function getDirectionForGhost(ghost) {
     return Phaser.Math.Between(1, 4);
 }
@@ -197,16 +227,16 @@ function updateGhosts() {
     const gs = ghostsGroup.children.entries;
     for (let i = 0; i < gs.length; i++) {
         const g = gs[i];
-        const nextGhostDirection = getDirectionForGhost(g);
-        if (canGo(g, nextGhostDirection)) {
-            g.direction = nextGhostDirection;
-        }
-        moveGhost.call(this, g)
+        //moveGhost.call(this, g)
         //console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
     }
 }
 
 function moveGhost(g) {
+    const nextGhostDirection = getDirectionForGhost(g);
+    if (canGo(g, nextGhostDirection)) {
+        g.direction = nextGhostDirection;
+    }
     if (g.direction === Direction.left) {
         g.setVelocityX(-CELL);
         g.setVelocityY(0);
@@ -228,6 +258,7 @@ function moveGhost(g) {
 
 function update() {
     updateScore.call(this);
+    updateMoney.call(this);
     updateGhosts.call(this);
     updateAiPaddle.call(this);
     handleKeyboard();
@@ -241,6 +272,11 @@ function updateAiPaddle() {
 }
 
 function handleKeyboard() {
+    if (cursors.space.isDown) {
+        mario.play('marioJump', true);
+        money++;
+    }
+
     if (cursors.left.isDown) {
         if (direction === Direction.right) {
             direction = Direction.left;
