@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import tile from "./assets/tile.png";
 import pacmanSheet from "./assets/basic_pacman.png";
+import dot from "./assets/dot.png";
 import pongPaddleSprite from "./assets/pong_paddle.png";
 import pongBallSprite from "./assets/pong_ball.png";
 
@@ -39,6 +40,8 @@ let aiPaddle;
 let userPaddle;
 let pongBall;
 
+const LEFT = CELL * 8;
+const RIGHT = CELL * 6;
 const OBSTACLE = '*';
 const FREE = '.';
 let world = [
@@ -56,13 +59,16 @@ Object.freeze(Direction);
 let direction = Direction.up;
 let nextDirection = Direction.up;
 
-// Representation of the world above in Phaser's physics system. Filled and drawn in create.
-let pWorld;
+let tilesGroup;
+let dotsGroup;
+let score = 0;
+let multiplier = 1;
 
 function preload() {
     this.load.spritesheet('pacmanSheet', pacmanSheet, {frameWidth: 14, frameHeight: 14});
 
     this.load.image('tile', tile);
+    this.load.image('dot', dot);
     this.load.image('pongPaddle', pongPaddleSprite);
     this.load.image('pongBall', pongBallSprite);
 }
@@ -103,16 +109,27 @@ function create() {
     pacman.setDisplaySize(PACSIZE, PACSIZE);
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.mousePointer;
-    scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#000'});
+    scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
     aiPaddle = this.physics.add.sprite(10, 100, 'pongPaddle');
     userPaddle = this.physics.add.sprite(WIDTH - 10, 100, 'pongPaddle');
     pongBall = this.physics.add.sprite(400, 100, 'pongBall');
 
     initWorld.call(this);
-    this.physics.add.collider(pacman, pWorld);
+    this.physics.add.collider(pacman, tilesGroup);
+    this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
+}
+
+function eatDot(pacman, dot) {
+   dot.disableBody(true, true);
+   score += multiplier;
+}
+
+function updateScore() {
+    scoreText.setText("score: " + score);
 }
 
 function update() {
+    updateScore.call(this);
     handleKeyboard();
     handleMouse();
 }
@@ -180,7 +197,7 @@ function handleKeyboard() {
     if (nextDirection === direction) {
         return;
     }
-    const tiles = pWorld.children.entries;
+    const tiles = tilesGroup.children.entries;
     for (let i = 0; i < tiles.length; i++) {
         const tile = tiles[i];
         if (Phaser.Geom.Rectangle.Overlaps(nextFramePacmanRectangle, tile.getBounds())) {
@@ -202,23 +219,25 @@ function handleMouse() {
     userPaddle.y = Math.min(userPaddle.y, HEIGHT - userPaddle.height / 2);
 }
 
-function makeObjectAtCell(x, y, key) {
-    const LEFT = CELL * 8;
-    const RIGHT = CELL * 6;
+function makeObjectAtCell(x, y, group, key) {
     x = LEFT + x * CELL + CELL / 2;
     y = RIGHT + y * CELL + CELL / 2;
 
-    pWorld.create(x, y, key);
+    group.create(x, y, key);
 }
 
 // creates and draws the physics world (pWorld)
 function initWorld() {
-    pWorld = this.physics.add.staticGroup();
+    tilesGroup = this.physics.add.staticGroup();
+    dotsGroup = this.physics.add.staticGroup();
     for (let i = 0; i < world.length; i++) {
         const row = world[i];
         for (let j = 0; j < row.length; j++) {
             if (row[j] === OBSTACLE) {
-                makeObjectAtCell(j, i, 'tile');
+                makeObjectAtCell(j, i, tilesGroup, 'tile');
+            }
+            else if (row[j] === FREE) {
+                makeObjectAtCell(j, i, dotsGroup,'dot');
             }
         }
     }
