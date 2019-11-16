@@ -12,8 +12,6 @@ import canonShotSprite from "./assets/canon_shot.png";
 const CELL = 40;
 const WIDTH = CELL*32;
 const HEIGHT = CELL*25;
-const WIDTH = CELL*32;
-const HEIGHT = CELL*25;
 const PACSIZE = 36;
 
 const PADDLE_WIDTH = 20;
