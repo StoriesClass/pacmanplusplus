@@ -288,7 +288,7 @@ function changeGhostDirection(g) {
     if (canGo(g)) {
         g.direction = g.nextDirection;
     }
-    console.log("Change ghost direction for " + g);
+    //console.log("Change ghost direction for " + g);
 }
 
 function update() {
@@ -422,11 +422,11 @@ function canGo(gameObject) {
         if (Phaser.Geom.Rectangle.Overlaps(nextFrameRectangle, tile.getBounds())) {
             overlaps = true;
         }
-        console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
+        //console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
     }
 
     if (!overlaps) {
-        console.log("NO overlap");
+        //console.log("NO overlap");
     }
 
     return !overlaps;
