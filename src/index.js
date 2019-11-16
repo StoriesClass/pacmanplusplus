@@ -43,6 +43,7 @@ let aiPaddle;
 let userPaddle;
 let pongBall;
 let marioJumping = false;
+let marioCanJump = true;
 
 const LEFT = CELL * 8;
 const RIGHT = CELL * 6;
@@ -163,7 +164,7 @@ function create() {
     this.anims.create({
         key: 'marioJump',
         frames: this.anims.generateFrameNumbers('marioSheet', {start: 1, end: 0}),
-        frameRate: 4,
+        frameRate: 10,
         repeat: 0
     });
 
@@ -197,6 +198,7 @@ function create() {
 
     mario = this.add.sprite(200, 400, 'marioSheet');
     mario.setDisplaySize(CELL, CELL * 4);
+    mario.on('animationcomplete', marioFinishesJumping, this);
 
     // order matters!
     initWorld.call(this);
@@ -306,11 +308,25 @@ function moveObject(object) {
     }
 }
 
-function handleKeyboard() {
-    if (cursors.space.isDown) {
+function handleMario() {
+    if (cursors.space.isDown && !marioJumping && marioCanJump) {
+        marioJumping = true;
+        marioCanJump = false;
         mario.play('marioJump', true);
-        money++;
     }
+
+    if (!marioCanJump && !marioJumping && !cursors.space.isDown) {
+        marioCanJump = true;
+    }
+}
+
+function marioFinishesJumping() {
+    marioJumping = false;
+    money++;
+}
+
+function handleKeyboard() {
+    handleMario();
 
     if (cursors.left.isDown) {
         updateDirection(pacman, Direction.left);
