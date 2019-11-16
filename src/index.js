@@ -62,9 +62,6 @@ const Direction = {"up": 1, "down": 2, "left": 3, "right": 4};
 // making enum
 Object.freeze(Direction);
 
-let direction = Direction.up;
-let nextDirection = Direction.up;
-
 let tilesGroup;
 let dotsGroup;
 let ghostsGroup;
@@ -112,6 +109,12 @@ function initGhosts() {
     });
 
     const redGhost = this.physics.add.sprite(CELL*5.5, CELL*5.5, 'pacmanSheet');
+    redGhost.myAnim = {
+        'left': 'red_left',
+        'right': 'red_right',
+        'up': 'red_up',
+        'down': 'red_down'
+    };
 
     redGhost.play('red_right');
     redGhost.setDisplaySize(PACSIZE, PACSIZE);
@@ -120,12 +123,12 @@ function initGhosts() {
 
     ghostsGroup.add(redGhost);
 
-    let timer = this.time.addEvent({
-        delay: 4,
-        callback: moveGhost(redGhost),
+    this.time.addEvent({
+        delay: 4000,
+        callback: () => changeGhostDirection(redGhost),
         callbackScope: this,
         loop: true
-    })
+    });
 }
 
 function create() {
@@ -169,6 +172,13 @@ function create() {
     pacman.setCollideWorldBounds(true);
     // A hack so pacman can easily can get between the tiles
     pacman.setDisplaySize(PACSIZE, PACSIZE);
+    pacman.direction = Direction.down;
+    pacman.myAnim = {
+        'left': 'left',
+        'right': 'right',
+        'up': 'up',
+        'down': 'down'
+    };
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.activePointer;
 
@@ -226,34 +236,16 @@ function getDirectionForGhost(ghost) {
 function updateGhosts() {
     const gs = ghostsGroup.children.entries;
     for (let i = 0; i < gs.length; i++) {
-        const g = gs[i];
-        //moveGhost.call(this, g)
-        //console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
+        moveObject(gs[i]);
     }
 }
 
-function moveGhost(g) {
-    const nextGhostDirection = getDirectionForGhost(g);
-    if (canGo(g, nextGhostDirection)) {
-        g.direction = nextGhostDirection;
+function changeGhostDirection(g) {
+    g.nextDirection = getDirectionForGhost(g);
+    if (canGo(g)) {
+        g.direction = g.nextDirection;
     }
-    if (g.direction === Direction.left) {
-        g.setVelocityX(-CELL);
-        g.setVelocityY(0);
-        g.anims.play('red_left', true);
-    } else if (g.direction === Direction.right) {
-        g.setVelocityX(CELL);
-        g.setVelocityY(0);
-        g.anims.play('red_right', true);
-    } else if (g.direction === Direction.down) {
-        g.setVelocityX(0);
-        g.setVelocityY(CELL);
-        g.anims.play('red_down', true);
-    } else if (g.direction === Direction.up) {
-        g.setVelocityX(0);
-        g.setVelocityY(-CELL);
-        g.anims.play('red_up', true);
-    }
+    console.log("Change ghost direction for " + g);
 }
 
 function update() {
@@ -261,6 +253,7 @@ function update() {
     updateMoney.call(this);
     updateGhosts.call(this);
     updateAiPaddle.call(this);
+    moveObject(pacman);
     handleKeyboard();
     handleMouse();
 }
@@ -271,6 +264,48 @@ function updateAiPaddle() {
     aiPaddle.body.y = Math.min(aiPaddle.body.y, HEIGHT - aiPaddle.height);
 }
 
+function updateDirection(object, directionIntent) {
+    if (directionIntent === Direction.left) {
+        if (object.direction === Direction.right) {
+            object.direction = Direction.left;
+        }
+    } else if (directionIntent === Direction.right) {
+        if (object.direction === Direction.left) {
+            object.direction = Direction.right;
+        }
+    } else if (directionIntent === Direction.down) {
+        if (object.direction === Direction.up) {
+           object.direction = Direction.down;
+        }
+    } else if (directionIntent === Direction.up) {
+        if (object.direction === Direction.down) {
+            object.direction = Direction.up;
+        }
+    }
+    object.nextDirection = directionIntent;
+}
+
+function moveObject(object) {
+    const direction = object.direction;
+    if (direction === Direction.left) {
+        object.setVelocityX(-CELL);
+        object.setVelocityY(0);
+        object.anims.play(object.myAnim.left, true);
+    } else if (direction === Direction.right) {
+        object.setVelocityX(CELL);
+        object.setVelocityY(0);
+        object.anims.play(object.myAnim.right, true);
+    } else if (direction === Direction.down) {
+        object.setVelocityX(0);
+        object.setVelocityY(CELL);
+        object.anims.play(object.myAnim.down, true);
+    } else if (direction === Direction.up) {
+        object.setVelocityX(0);
+        object.setVelocityY(-CELL);
+        object.anims.play(object.myAnim.up, true);
+    }
+}
+
 function handleKeyboard() {
     if (cursors.space.isDown) {
         mario.play('marioJump', true);
@@ -278,66 +313,37 @@ function handleKeyboard() {
     }
 
     if (cursors.left.isDown) {
-        if (direction === Direction.right) {
-            direction = Direction.left;
-        }
-        nextDirection = Direction.left;
+        updateDirection(pacman, Direction.left);
     } else if (cursors.right.isDown) {
-        if (direction === Direction.left) {
-            direction = Direction.right;
-        }
-        nextDirection = Direction.right;
+        updateDirection(pacman, Direction.right);
     } else if (cursors.down.isDown) {
-        if (direction === Direction.up) {
-            direction = Direction.down;
-        }
-        nextDirection = Direction.down;
+        updateDirection(pacman, Direction.down);
     } else if (cursors.up.isDown) {
-        if (direction === Direction.down) {
-            direction = Direction.up;
-        }
-        nextDirection = Direction.up;
+        updateDirection(pacman, Direction.up);
     }
 
-    if (direction === Direction.left) {
-        pacman.setVelocityX(-CELL);
-        pacman.setVelocityY(0);
-        pacman.anims.play('left', true);
-    } else if (direction === Direction.right) {
-        pacman.setVelocityX(CELL);
-        pacman.setVelocityY(0);
-        pacman.anims.play('right', true);
-    } else if (direction === Direction.down) {
-        pacman.setVelocityX(0);
-        pacman.setVelocityY(CELL);
-        pacman.anims.play('down', true);
-    } else if (direction === Direction.up) {
-        pacman.setVelocityX(0);
-        pacman.setVelocityY(-CELL);
-        pacman.anims.play('up', true);
-    }
-
-    const pacmanCanGo = canGo(pacman, nextDirection);
+    const pacmanCanGo = canGo(pacman);
 
     if (pacmanCanGo) {
-        direction = nextDirection;
+        pacman.direction = pacman.nextDirection;
     }
 }
 
 // checks if the given game object may move in the given direction
-function canGo(gameObject, direction) {
-    const rectangle = pacman.getBounds();
+function canGo(gameObject) {
+    const rectangle = gameObject.getBounds();
+    const nextDirection = gameObject.nextDirection;
     let dx = 0, dy = 0;
-    if (direction === Direction.left) {
+    if (nextDirection === Direction.left) {
         dx = -7;
     }
-    if (direction === Direction.right) {
+    if (nextDirection === Direction.right) {
         dx = 7;
     }
-    if (direction === Direction.down) {
+    if (nextDirection === Direction.down) {
         dy = 7;
     }
-    if (direction === Direction.up) {
+    if (nextDirection === Direction.up) {
         dy = -7;
     }
     const nextFrameRectangle =
@@ -351,7 +357,11 @@ function canGo(gameObject, direction) {
         if (Phaser.Geom.Rectangle.Overlaps(nextFrameRectangle, tile.getBounds())) {
             overlaps = true;
         }
-        //console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
+        console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
+    }
+
+    if (!overlaps) {
+        console.log("NO overlap");
     }
 
     return !overlaps;
