@@ -53,6 +53,8 @@ let invadersCanon;
 let marioJumping = false;
 let marioCanJump = true;
 
+let pongBallSpeed = 500;
+
 let invadersMonstersGroup;
 let canonShotsGroup;
 
@@ -212,7 +214,7 @@ function create() {
     userPaddle.setDisplaySize(PADDLE_WIDTH, paddleLength);
     pongBall = this.physics.add.sprite(35, 300, 'pongBall');
     pongBall.setCollideWorldBounds(true);
-    pongBall.setVelocity(1000, 200);
+    pongBall.setVelocity(pongBallSpeed, 0);
     pongBall.setBounce(1);
     invadersCanon = this.physics.add.sprite(WIDTH / 2, HEIGHT - 30 / 2, 'invadersCanon');
 
@@ -243,9 +245,22 @@ function setColliders() {
     this.physics.add.collider(pacman, tilesGroup);
     this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
     this.physics.add.collider(pacman, ghostsGroup, collideWithGhost, null, this);
-    this.physics.add.collider(aiPaddle, pongBall);
-    this.physics.add.collider(userPaddle, pongBall);
+    this.physics.add.collider(aiPaddle, pongBall, pongBounce, null, this);
+    this.physics.add.collider(userPaddle, pongBall, pongBounce, null, this);
     this.physics.add.collider(pongBall, pacman, null, ballHitPacman, this);
+}
+
+function pongBounce(paddle, ball) {
+    let hitPos = ((paddle.body.y + aiPaddle.height / 2) - (ball.body.y + pongBall.height / 2)) / (aiPaddle.height / 2);
+    let angle = hitPos * (Math.PI * 5 / 12);
+    if (ball.body.x < WIDTH / 2) {
+        ball.body.velocity.x = pongBallSpeed * Math.cos(angle);
+    } else {
+        ball.body.velocity.x = -pongBallSpeed * Math.cos(angle);
+    }
+    ball.body.velocity.y = 1000 * -Math.sin(angle);
+    paddle.body.velocity.x = 0;
+    paddle.body.velocity.y = 0;
 }
 
 function gameOver() {
