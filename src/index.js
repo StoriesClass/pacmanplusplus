@@ -9,8 +9,8 @@ import invadersMonsterSprite from "./assets/invaders_monster.png";
 import invadersCanonSprite from "./assets/invaders_canon.png";
 import canonShotSprite from "./assets/canon_shot.png";
 
-const WIDTH = 1200;
-const HEIGHT = 1000;
+const WIDTH = CELL*32;
+const HEIGHT = CELL*25;
 const CELL = 40;
 const PACSIZE = 36;
 
@@ -56,41 +56,41 @@ let marioCanJump = true;
 let invadersMonstersGroup;
 let canonShotsGroup;
 
-const LEFT = CELL * 8;
+const LEFT = CELL * 4;
 const RIGHT = CELL * 6;
 const OBSTACLE = '*';
 const FREE = '.';
 const GHOST = 'g';
 let world = [
-    "     *       *         ",
-    " * *** *** * * ******* ",
-    " *   *   * *   *     * ",
-    " *** * *** ********* * ",
-    "   *   *   *     *   * ",
-    "** ***** *** *** * *** ",
-    "   *   *   * * * *     ",
-    " ***** *** * * * * ****",
-    "  g      *    g* * *   ",
-    "**** *********** * * * ",
-    " *   *   *   *   *   * ",
-    " * *** * * * * *** ****",
-    "     * * * *   *   *   ",
-    " ** ** * *  * *** ** * ",
-    "       * *  g      * * ",
-    " * ** ** *** * *** * **",
-    " * *   *     *   * * * ",
-    " * * * ***** *** * * * ",
-    " *   *   * *   * * * * ",
-    " ** **** * *** *** * * ",
-    " *   *   *   * *  g*   ",
-    "** * * *** * * * * *** ",
-    "       *   * * * *   * ",
-    " ******* ***   * *** * ",
-    "   *   *   * *   *     ",
-    " * * * * * *** *** ****",
-    " *   *   *     *   *   ",
-    " *** ******* *** ***** ",
-    "   *                  *"
+    "*     *       *         *",
+    "* * *** *** * * ******* *",
+    "* *   *   * *   *     * *",
+    "* *** * *** ********* * *",
+    "*   *   *   *     *   * *",
+    "*** ***** *** *** * *** *",
+    "*   *   *   * * * *     *",
+    "* ***** *** * * * * *****",
+    "*  g      *    g* * *   *",
+    "***** *********** * * * *",
+    "* *   *   *   *   *   * *",
+    "* * *** * * * * *** *****",
+    "*     * * * *   *   *   *",
+    "* ** ** * *  * *** ** * *",
+    "*       * *  g      * * *",
+    "* * ** ** *** * *** * ***",
+    "* * *   *     *   * * * *",
+    "* * * * ***** *** * * * *",
+    "* *   *   * *   * * * * *",
+    "* ** **** * *** *** * * *",
+    "* *   *   *   * *  g*   *",
+    "*** * * *** * * * * *** *",
+    "*       *   * * * *   * *",
+    "* ******* ***   * *** * *",
+    "*   *   *   * *   *     *",
+    "* * * * * * *** *** *****",
+    "* *   *   *     *   *   *",
+    "* *** ******* *** ***** *",
+    "*   *                  **"
 ] ;
 
 const Direction = {"up": 1, "down": 2, "left": 3, "right": 4};
@@ -443,7 +443,7 @@ function handleMouse() {
 }
 
 function makeObjectAtCell(x, y, group, key) {
-    x = x * CELL + CELL / 2;
+    x = LEFT + x * CELL + CELL / 2;
     y = y * CELL + CELL / 2;
 
     return group.create(x, y, key);
