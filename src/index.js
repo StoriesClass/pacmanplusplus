@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import tile from "./assets/tile.png";
 import pacmanSheet from "./assets/basic_pacman.png";
 import dot from "./assets/dot.png";
+import pongPaddleSprite from "./assets/pong_paddle.png";
+import pongBallSprite from "./assets/pong_ball.png";
 
 const WIDTH = 800;
 const HEIGHT = 600;
@@ -30,8 +32,13 @@ const config = {
 const game = new Phaser.Game(config);
 // For input events, handled in update
 let cursors;
+let input;
+
 let pacman;
 let scoreText;
+let aiPaddle;
+let userPaddle;
+let pongBall;
 
 const LEFT = CELL * 8;
 const RIGHT = CELL * 6;
@@ -64,6 +71,8 @@ function preload() {
 
     this.load.image('tile', tile);
     this.load.image('dot', dot);
+    this.load.image('pongPaddle', pongPaddleSprite);
+    this.load.image('pongBall', pongBallSprite);
 }
 
 function initGhosts() {
@@ -135,7 +144,11 @@ function create() {
     // A hack so pacman can easily can get between the tiles
     pacman.setDisplaySize(PACSIZE, PACSIZE);
     cursors = this.input.keyboard.createCursorKeys();
+    input = this.input.mousePointer;
     scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
+    aiPaddle = this.physics.add.sprite(10, 100, 'pongPaddle');
+    userPaddle = this.physics.add.sprite(WIDTH - 10, 100, 'pongPaddle');
+    pongBall = this.physics.add.sprite(400, 100, 'pongBall');
 
     initGhosts.call(this);
 
@@ -159,6 +172,11 @@ function updateGhosts() {
 
 function update() {
     updateScore.call(this);
+    handleKeyboard();
+    handleMouse();
+}
+
+function handleKeyboard() {
     if (cursors.left.isDown) {
         if (direction === Direction.right) {
             direction = Direction.left;
@@ -237,6 +255,12 @@ function update() {
         console.log("No overlap!!!");
         direction = nextDirection;
     }
+}
+
+function handleMouse() {
+    userPaddle.y += input.velocity.y / 3;
+    userPaddle.y = Math.max(userPaddle.y, userPaddle.height / 2);
+    userPaddle.y = Math.min(userPaddle.y, HEIGHT - userPaddle.height / 2);
 }
 
 function makeObjectAtCell(x, y, group, key) {
