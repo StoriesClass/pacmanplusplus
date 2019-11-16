@@ -4,6 +4,7 @@ import pacmanSheet from "./assets/basic_pacman.png";
 
 const WIDTH = 800;
 const HEIGHT = 600;
+const CELL = 40;
 
 const config = {
     type: Phaser.AUTO,
@@ -33,11 +34,11 @@ let scoreText;
 const OBSTACLE = '*';
 const FREE = '.';
 let world = [
-    ["**.**"],
-    ["**.**"],
-    ["....."],
-    ["**.**"],
-    ["**.**"]
+    "**.**",
+    "**.**",
+    ".....",
+    "**.**",
+    "**.**"
 ];
 
 // Representation of the world above in Phaser's physics system. Filled and drawn in create.
@@ -78,9 +79,10 @@ function create() {
         repeat: -1
     });
 
-    pacman = this.physics.add.sprite(50, 50, 'pacmanSheet');
+    pacman = this.physics.add.sprite(CELL*2.5, CELL*2.5, 'pacmanSheet');
     pacman.play('right');
     pacman.setCollideWorldBounds(true);
+    pacman.setSize(CELL, CELL);
     cursors = this.input.keyboard.createCursorKeys();
     scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
@@ -90,23 +92,23 @@ function create() {
 
 function update() {
     if (cursors.left.isDown) {
-        pacman.setVelocityX(-40);
+        pacman.setVelocityX(-CELL);
         pacman.setVelocityY(0);
         pacman.anims.play('left', true);
     }
     else if (cursors.right.isDown) {
-        pacman.setVelocityX(40);
+        pacman.setVelocityX(CELL);
         pacman.setVelocityY(0);
         pacman.anims.play('right', true);
     }
     else if (cursors.down.isDown) {
         pacman.setVelocityX(0);
-        pacman.setVelocityY(40);
+        pacman.setVelocityY(CELL);
         pacman.anims.play('down', true);
     }
     else if (cursors.up.isDown) {
         pacman.setVelocityX(0);
-        pacman.setVelocityY(-40);
+        pacman.setVelocityY(-CELL);
         pacman.anims.play('up', true);
     }
 }
@@ -115,16 +117,17 @@ function update() {
 function initWorld() {
     console.log("init");
     pWorld = this.physics.add.staticGroup();
-    let x = 0;
-    let y = 0;
+    let x = CELL/2;
+    let y = CELL/2;
     for(let i = 0; i < world.length; i++) {
         const row = world[i];
         for(let j = 0; j < row.length; j++) {
-            if (row[j] == OBSTACLE) {
+            if (row[j] === OBSTACLE) {
                 pWorld.create(x, y, 'tile');
-                x += 40;
             }
-            y += 40;
+            x += CELL;
         }
+        x = CELL/2;
+        y += CELL;
     }
 }
