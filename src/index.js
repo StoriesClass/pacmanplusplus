@@ -5,6 +5,9 @@ import dot from "./assets/dot.png";
 import marioSheet from "./assets/mario_jump.png";
 import pongPaddleSprite from "./assets/pong_paddle.png";
 import pongBallSprite from "./assets/pong_ball.png";
+import invadersMonsterSprite from "./assets/invaders_monster.png";
+import invadersCanonSprite from "./assets/invaders_canon.png";
+import canonShotSprite from "./assets/canon_shot.png";
 
 const WIDTH = 1200;
 const HEIGHT = 1000;
@@ -46,8 +49,12 @@ let coinsText;
 let aiPaddle;
 let userPaddle;
 let pongBall;
+let invadersCanon;
 let marioJumping = false;
 let marioCanJump = true;
+
+let invadersMonstersGroup;
+let canonShotsGroup;
 
 const LEFT = CELL * 8;
 const RIGHT = CELL * 6;
@@ -106,6 +113,9 @@ function preload() {
     this.load.image('dot', dot);
     this.load.image('pongPaddle', pongPaddleSprite);
     this.load.image('pongBall', pongBallSprite);
+    this.load.image('invadersMonster', invadersMonsterSprite);
+    this.load.image('invadersCanon', invadersCanonSprite);
+    this.load.image('canonShot', canonShotSprite);
 }
 
 function initGhosts() {
@@ -188,7 +198,7 @@ function create() {
         'down': 'down'
     };
     cursors = this.input.keyboard.createCursorKeys();
-    input = this.input.activePointer;
+    input = this.input.mousePointer;
 
     scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
     coinsText = this.add.text(600, 16, 'coins: 0', {fontSize: '32px', fill: '#fff'});
@@ -203,6 +213,17 @@ function create() {
     pongBall.setCollideWorldBounds(true);
     pongBall.setVelocity(1000, 200);
     pongBall.setBounce(1);
+    invadersCanon = this.physics.add.sprite(WIDTH / 2, HEIGHT - 30 / 2, 'invadersCanon');
+
+    invadersMonstersGroup = this.physics.add.staticGroup();
+    canonShotsGroup = this.physics.add.staticGroup();
+
+    this.time.addEvent({
+        delay: 1000,
+        callback: () => fireCanon.call(this),
+        callbackScope: this,
+        loop: true
+    });
 
     mario = this.add.sprite(200, 400, 'marioSheet');
     mario.setDisplaySize(CELL, CELL * 4);
@@ -223,6 +244,16 @@ function setColliders() {
     this.physics.add.collider(pacman, ghostsGroup, collideWithGhost, null, this);
     this.physics.add.collider(aiPaddle, pongBall);
     this.physics.add.collider(userPaddle, pongBall);
+    this.physics.add.collider(pongBall, pacman, null, ballHitPacman, this);
+}
+
+function gameOver() {
+    console.log("gg");
+    this.physics.pause();
+}
+
+function ballHitPacman() {
+    gameOver.call(this);
 }
 
 function eatDot(pacman, dot) {
@@ -268,6 +299,12 @@ function update() {
     moveObject(pacman);
     handleKeyboard();
     handleMouse();
+}
+
+function fireCanon() {
+    let shot = this.physics.add.sprite(invadersCanon.x, invadersCanon.y - invadersCanon.height / 2 - 5, 'canonShot');
+    shot.setVelocity(0, -1000);
+    // shot.setCollideWorldBounds(true);
 }
 
 function updateAiPaddle() {
@@ -399,6 +436,10 @@ function handleMouse() {
     userPaddle.body.velocity.y = (input.y - userPaddle.body.y - userPaddle.height / 2) * 100;
     userPaddle.body.velocity.y = Math.min(userPaddle.body.velocity.y, 1000);
     userPaddle.body.velocity.y = Math.max(userPaddle.body.velocity.y, -1000);
+
+    invadersCanon.body.velocity.x = (input.x - invadersCanon.body.x - invadersCanon.width / 2) * 100;
+    invadersCanon.body.velocity.x = Math.min(invadersCanon.body.velocity.x, 1000);
+    invadersCanon.body.velocity.x = Math.max(invadersCanon.body.velocity.x, -1000);
 }
 
 function makeObjectAtCell(x, y, group, key) {
