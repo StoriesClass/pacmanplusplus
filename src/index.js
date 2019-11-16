@@ -10,7 +10,7 @@ import invadersCanonSprite from "./assets/invaders_canon.png";
 import canonShotSprite from "./assets/canon_shot.png";
 
 const CELL = 40;
-const WIDTH = CELL*32;
+const WIDTH = CELL*38;
 const HEIGHT = CELL*25;
 const PACSIZE = 36;
 
@@ -56,7 +56,7 @@ let marioCanJump = true;
 let invadersMonstersGroup;
 let canonShotsGroup;
 
-const LEFT = CELL * 4;
+const LEFT = CELL * 6;
 const RIGHT = CELL * 6;
 const OBSTACLE = '*';
 const FREE = '.';
@@ -201,7 +201,8 @@ function create() {
     input = this.input.mousePointer;
 
     scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
-    coinsText = this.add.text(600, 16, 'coins: 0', {fontSize: '32px', fill: '#fff'});
+    coinsText = this.add.text(WIDTH - 200, 16, 'coins: 0', {fontSize: '32px', fill: '#fff'});
+
     aiPaddle = this.physics.add.sprite(10, 300, 'pongPaddle');
     aiPaddle.setCollideWorldBounds(true);
     aiPaddle.setBounce(1);
@@ -225,7 +226,7 @@ function create() {
         loop: true
     });
 
-    mario = this.add.sprite(200, 400, 'marioSheet');
+    mario = this.add.sprite(WIDTH - CELL * 1.5, HEIGHT - CELL * 3, 'marioSheet');
     mario.setDisplaySize(CELL, CELL * 4);
     mario.on('animationcomplete', marioFinishesJumping, this);
 
