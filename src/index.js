@@ -116,8 +116,16 @@ function initGhosts() {
     redGhost.play('red_right');
     redGhost.setDisplaySize(PACSIZE, PACSIZE);
     redGhost.direction = Direction.up;
+    redGhost.setCollideWorldBounds();
 
-    ghostsGroup.add(redGhost)
+    ghostsGroup.add(redGhost);
+
+    let timer = this.time.addEvent({
+        delay: 4,
+        callback: moveGhost(redGhost),
+        callbackScope: this,
+        loop: true
+    })
 }
 
 function create() {
@@ -219,16 +227,16 @@ function updateGhosts() {
     const gs = ghostsGroup.children.entries;
     for (let i = 0; i < gs.length; i++) {
         const g = gs[i];
-        const nextGhostDirection = getDirectionForGhost(g);
-        if (canGo(g, nextGhostDirection)) {
-            g.direction = nextGhostDirection;
-        }
-        moveGhost.call(this, g)
+        //moveGhost.call(this, g)
         //console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
     }
 }
 
 function moveGhost(g) {
+    const nextGhostDirection = getDirectionForGhost(g);
+    if (canGo(g, nextGhostDirection)) {
+        g.direction = nextGhostDirection;
+    }
     if (g.direction === Direction.left) {
         g.setVelocityX(-CELL);
         g.setVelocityY(0);
