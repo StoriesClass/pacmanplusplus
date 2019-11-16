@@ -178,21 +178,24 @@ function update() {
     }
 }
 
+function makeObjectAtCell(x, y, key) {
+    const LEFT = CELL * 8;
+    const RIGHT = CELL * 6;
+    x = LEFT + x * CELL + CELL / 2;
+    y = RIGHT + y * CELL + CELL / 2;
+
+    pWorld.create(x, y, key);
+}
+
 // creates and draws the physics world (pWorld)
 function initWorld() {
-    console.log("init");
     pWorld = this.physics.add.staticGroup();
-    let x = CELL / 2;
-    let y = CELL / 2;
     for (let i = 0; i < world.length; i++) {
         const row = world[i];
         for (let j = 0; j < row.length; j++) {
             if (row[j] === OBSTACLE) {
-                pWorld.create(x, y, 'tile');
+                makeObjectAtCell(j, i, 'tile');
             }
-            x += CELL;
         }
-        x = CELL / 2;
-        y += CELL;
     }
 }
