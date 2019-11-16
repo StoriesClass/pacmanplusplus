@@ -37,12 +37,14 @@ const LEFT = CELL * 8;
 const RIGHT = CELL * 6;
 const OBSTACLE = '*';
 const FREE = '.';
+const GHOST = 'g';
 let world = [
-    "**.**",
-    "**.**",
-    ".....",
-    "**.**",
-    "**.**"
+    "**.**.",
+    "**.**.",
+    "......",
+    "**.**.",
+    "*..**.",
+    "*....."
 ];
 
 const Direction = {"up": 1, "down": 2, "left": 3, "right": 4};
@@ -62,6 +64,40 @@ function preload() {
 
     this.load.image('tile', tile);
     this.load.image('dot', dot);
+}
+
+function initGhosts() {
+    this.anims.create({
+        key: 'red_right',
+        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 8, end: 9 }),
+        frameRate: 2,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'red_left',
+        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 10, end: 11 }),
+        frameRate: 2,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'red_up',
+        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 12, end: 13 }),
+        frameRate: 2,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'red_down',
+        frames: this.anims.generateFrameNumbers('pacmanSheet', { start: 14, end: 15 }),
+        frameRate: 2,
+        repeat: -1
+    });
+
+    const redGhost = this.add.sprite(CELL*5.5, CELL*5.5, 'pacmanSheet');
+    redGhost.play('red_right');
+    redGhost.setDisplaySize(PACSIZE, PACSIZE);
 }
 
 function create() {
@@ -101,6 +137,8 @@ function create() {
     cursors = this.input.keyboard.createCursorKeys();
     scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
 
+    initGhosts.call(this);
+
     initWorld.call(this);
     this.physics.add.collider(pacman, tilesGroup);
     this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
@@ -113,6 +151,10 @@ function eatDot(pacman, dot) {
 
 function updateScore() {
     scoreText.setText("score: " + score);
+}
+
+function updateGhosts() {
+
 }
 
 function update() {
@@ -176,6 +218,8 @@ function update() {
 
     let overlaps = false;
 
+    updateGhosts.call(this);
+
     if (nextDirection === direction) {
         return;
     }
@@ -214,6 +258,9 @@ function initWorld() {
             }
             else if (row[j] === FREE) {
                 makeObjectAtCell(j, i, dotsGroup,'dot');
+            }
+            else if (row[j] === GHOST) {
+                makeObjectAtCell(j, i, ghostsGroup, 'ghost')
             }
         }
     }
