@@ -59,6 +59,9 @@ let pongBallSpeed = 500;
 let invadersMonstersGroup;
 let canonShotsGroup;
 
+let invadersHorSlot = 0;
+let invadersMoveRight = true;
+
 const LEFT_OFFSET = CELL * 6;
 const TOP_OFFSET = CELL * 2;
 const OBSTACLE = '*';
@@ -219,6 +222,12 @@ function create() {
         callbackScope: this,
         loop: true
     });
+    this.time.addEvent({
+        delay: 700,
+        callback: () => updateInvadersMonsters.call(this),
+        callbackScope: this,
+        loop: true
+    });
 
     mario = this.add.sprite(WIDTH - CELL * 3.5, HEIGHT - CELL * 5, 'marioSheet');
     mario.setDisplaySize(CELL * 2, CELL * 8);
@@ -240,6 +249,39 @@ function create() {
         fill: '#fff'
     });
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
+}
+
+function updateInvadersMonsters() {
+    let invaders = invadersMonstersGroup.children.entries;
+    if (invaders.length === 0) {
+        spawnInvaders.call(this);
+        return;
+    }
+    if (invadersHorSlot === 8) {
+        for (let i = 0; i < invaders.length; i++) {
+            invaders[i].y += 30;
+        }
+        invadersMoveRight = !invadersMoveRight;
+        invadersHorSlot = 0;
+        return;
+    }
+    for (let i = 0; i < invaders.length; i++) {
+        if (invadersMoveRight) {
+            invaders[i].x += 40;
+        } else {
+            invaders[i].x -= 40;
+        }
+    }
+    invadersHorSlot++;
+}
+
+function spawnInvaders() {
+    for (let j = 0; j < 3; j++) {
+        for (let i = 0; i < 12; i++) {
+            let monster = this.physics.add.sprite(300 + i * 60, 100 + j * 50, 'invadersMonster');
+            invadersMonstersGroup.add(monster);
+        }
+    }
 }
 
 function initPacman(x, y) {
