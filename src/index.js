@@ -135,7 +135,7 @@ let liveCostText;
 let smallCannonsText;
 let paddleCost = BASE_PADDLE_COST;
 let liveCost = BASE_LIVE_COST;
-let smallCannonsCost = 20;
+let smallCannonsCost = 30;
 let shieldSprite;
 
 function preload() {
