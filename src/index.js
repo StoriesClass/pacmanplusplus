@@ -204,6 +204,19 @@ function create() {
         repeat: 0
     });
 
+    let particles = this.add.particles('flares');
+
+    let emitter = particles.createEmitter({
+        frame: 'yellow',
+        radial: false,
+        lifespan: 2000,
+        speedX: { min: 200, max: 400 },
+        quantity: 4,
+        gravityY: -50,
+        scale: { start: 0.6, end: 0, ease: 'Power3' },
+        blendMode: 'ADD'
+    });
+
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.mousePointer;
 
@@ -247,6 +260,8 @@ function create() {
     pongBall.setCollideWorldBounds(true);
     pongBall.setVelocity(pongBallSpeed, 0);
     pongBall.setBounce(1);
+
+    emitter.startFollow(pongBall);
 
     setColliders.call(this);
 
