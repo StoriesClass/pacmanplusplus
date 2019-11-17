@@ -7,6 +7,7 @@ import pongPaddleSprite from "./assets/pong_paddle.png";
 import pongBallSprite from "./assets/pong_ball.png";
 import invadersMonsterSprite from "./assets/invaders_monster.png";
 import invadersCanonSprite from "./assets/invaders_canon.png";
+import invadersCanonSmallSprite from "./assets/invaders_canon_small.png";
 import canonShotSprite from "./assets/canon_shot.png";
 import bigDot from "./assets/big_dot.png";
 import flaresPng from "./assets/particles/flares.png";
@@ -56,8 +57,13 @@ let aiPaddle;
 let userPaddle;
 let pongBall;
 let invadersCanon;
+let smallCannon1;
+let smallCannon2;
 let marioJumping = false;
 let marioCanJump = true;
+
+let hasSmallCannons = false;
+let smallCannonsSkipped = 0;
 
 let gameOverSign;
 
@@ -126,8 +132,10 @@ let multiplier = 1;
 let paddleLength = 120;
 let paddleCostText;
 let liveCostText;
+let smallCannonsText;
 let paddleCost = BASE_PADDLE_COST;
 let liveCost = BASE_LIVE_COST;
+let smallCannonsCost = 20;
 let shieldSprite;
 
 function preload() {
@@ -140,6 +148,7 @@ function preload() {
     this.load.image('pongBall', pongBallSprite);
     this.load.image('invadersMonster', invadersMonsterSprite);
     this.load.image('invadersCanon', invadersCanonSprite);
+    this.load.image('invadersCanonSmall', invadersCanonSmallSprite);
     this.load.image('canonShot', canonShotSprite);
     this.load.image('bigDot', bigDot);
     this.load.image('gameOver', gameOverPic);
@@ -288,8 +297,13 @@ function create() {
         fontSize: '30px',
         fill: '#fff'
     });
+    smallCannonsText = this.add.text(WIDTH / 2 - 300, HEIGHT - 180, '"I" to buy cannons for ' +  smallCannonsCost + ' coins', {
+        fontSize: '30px',
+        fill: '#fff'
+    });
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
     this.input.keyboard.on('keydown_O', buyLive, this);
+    this.input.keyboard.on('keydown_I', addCannons, this);
 
     let particles = this.add.particles('flares');
     let emitter = particles.createEmitter({
@@ -573,6 +587,63 @@ function fireCanon() {
     shot.particles = particles;
     // particles.destroy();
     emitter.startFollow(shot);
+
+    if (hasSmallCannons) {
+        if (smallCannonsSkipped < 1) {
+            smallCannonsSkipped++;
+            return;
+        }
+        smallCannonsSkipped = 0;
+        let shotSmall1 = this.physics.add.sprite(
+            smallCannon1.x, smallCannon1.y - smallCannon1.height / 2 - 7, 'canonShot');
+        shotSmall1.setVelocity(0, -1000);
+        canonShotsGroup.add(shotSmall1);
+        for (let i = 0; i < monsters.length; i++) {
+            this.physics.add.collider(monsters[i], shotSmall1, monsterGotShot, null, this);
+        }
+        for (let j = 0; j < ghosts.length; j++) {
+            this.physics.add.collider(ghosts[j], shotSmall1, ghostGotShot, null, this);
+        }
+        let particles = this.add.particles('flares');
+        let emitter = particles.createEmitter({
+            frame: 'green',
+            radial: false,
+            lifespan: 500,
+            // speedX: { min: 200, max: 400 },
+            quantity: 1,
+            gravityY: -50,
+            scale: { start: 0.35, end: 0, ease: 'Power3' },
+            blendMode: 'ADD'
+        });
+        shotSmall1.particles = particles;
+        // particles.destroy();
+        emitter.startFollow(shotSmall1);
+
+        let shotSmall2 = this.physics.add.sprite(
+            smallCannon2.x, smallCannon2.y - smallCannon2.height / 2 - 7, 'canonShot');
+        shotSmall2.setVelocity(0, -1000);
+        canonShotsGroup.add(shotSmall2);
+        for (let i = 0; i < monsters.length; i++) {
+            this.physics.add.collider(monsters[i], shotSmall2, monsterGotShot, null, this);
+        }
+        for (let j = 0; j < ghosts.length; j++) {
+            this.physics.add.collider(ghosts[j], shotSmall2, ghostGotShot, null, this);
+        }
+        let particles2 = this.add.particles('flares');
+        let emitter2 = particles.createEmitter({
+            frame: 'green',
+            radial: false,
+            lifespan: 500,
+            // speedX: { min: 200, max: 400 },
+            quantity: 1,
+            gravityY: -50,
+            scale: { start: 0.35, end: 0, ease: 'Power3' },
+            blendMode: 'ADD'
+        });
+        shotSmall2.particles = particles2;
+        // particles.destroy();
+        emitter2.startFollow(shotSmall2);
+    }
 }
 
 function updateAiPaddle() {
@@ -705,6 +776,11 @@ function handleMouse() {
 
     invadersCanon.body.velocity.x = 0;
     invadersCanon.body.x = input.x - invadersCanon.width / 2;
+
+    if (hasSmallCannons) {
+        smallCannon1.body.x = invadersCanon.body.x - smallCannon1.width - 30;
+        smallCannon2.body.x = invadersCanon.body.x + invadersCanon.width + 30;
+    }
 }
 
 function makeObjectAtCell(x, y, group, key) {
@@ -829,4 +905,14 @@ function buyLive() {
         liveCostText.setText('"O" to buy shield for ' + liveCost + ' coins');
     }
     updateShieldOverlay();
+}
+
+function addCannons() {
+    if (coins >= smallCannonsCost) {
+        coins -= smallCannonsCost;
+        smallCannon1 = this.physics.add.sprite(invadersCanon.body.x - 40, HEIGHT - 15, 'invadersCanonSmall');
+        smallCannon2 = this.physics.add.sprite(
+            invadersCanon.body.x + invadersCanon.width + 40, HEIGHT - 15, 'invadersCanonSmall');
+        hasSmallCannons = true;
+    }
 }
