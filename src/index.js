@@ -358,6 +358,7 @@ function setColliders() {
 
 function monsterGotShot(monster, shot) {
     monster.disableBody(true, true);
+    shot.particles.destroy();
     shot.disableBody(true, true);
     invadersCount--;
 }
@@ -508,6 +509,7 @@ function checkBallBoundaries() {
 function ghostGotShot(ghost, shot) {
     ghost.disableBody(true, true);
     shot.disableBody(true, true);
+    shot.particles.destroy();
 }
 
 function fireCanon() {
@@ -522,6 +524,21 @@ function fireCanon() {
     for (let j = 0; j < ghosts.length; j++) {
         this.physics.add.collider(ghosts[j], shot, ghostGotShot, null, this);
     }
+
+    let particles = this.add.particles('flares');
+    let emitter = particles.createEmitter({
+        frame: 'green',
+        radial: false,
+        lifespan: 500,
+        // speedX: { min: 200, max: 400 },
+        quantity: 1,
+        gravityY: -50,
+        scale: { start: 0.5, end: 0, ease: 'Power3' },
+        blendMode: 'ADD'
+    });
+    shot.particles = particles;
+    // particles.destroy();
+    emitter.startFollow(shot);
 }
 
 function updateAiPaddle() {
