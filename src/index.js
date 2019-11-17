@@ -505,6 +505,11 @@ function checkBallBoundaries() {
     }
 }
 
+function ghostGotShot(ghost, shot) {
+    ghost.disableBody(true, true);
+    shot.disableBody(true, true);
+}
+
 function fireCanon() {
     let shot = this.physics.add.sprite(invadersCanon.x, invadersCanon.y - invadersCanon.height / 2 - 7, 'canonShot');
     shot.setVelocity(0, -1000);
@@ -512,6 +517,10 @@ function fireCanon() {
     let monsters = invadersMonstersGroup.children.entries;
     for (let i = 0; i < monsters.length; i++) {
         this.physics.add.collider(monsters[i], shot, monsterGotShot, null, this);
+    }
+    let ghosts = ghostsGroup.children.entries;
+    for (let j = 0; j < ghosts.length; j++) {
+        this.physics.add.collider(ghosts[j], shot, ghostGotShot, null, this);
     }
 }
 
@@ -680,6 +689,11 @@ function initGhost(x, y) {
 
     this.physics.add.collider(ghost, tilesGroup, null, () => changeGhostDirection(ghost), this);
     this.physics.add.collider(pacman, ghost, null, collideWithGhost, this);
+
+    let shots = canonShotsGroup.children.entries;
+    for (let i = 0; i < shots.length; i++) {
+        this.physics.add.collider(ghost, shots[i], ghostGotShot, null, this);
+    }
 }
 
 function initBigDot(x, y) {
