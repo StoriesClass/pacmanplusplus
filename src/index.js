@@ -259,7 +259,7 @@ function create() {
         loop: true
     });
     this.time.addEvent({
-        delay: 500,
+        delay: 400,
         callback: () => updateInvadersMonsters.call(this),
         callbackScope: this,
         loop: true
@@ -343,16 +343,16 @@ function spawnInvaders() {
     let shots = canonShotsGroup.children.entries;
     invadersHorSlot = 0;
     invadersVerSlot = 0;
-    for (let j = 0; j < 4; j++) {
+    for (let j = 0; j < 3; j++) {
         for (let i = 0; i < 14; i++) {
-            let monster = this.physics.add.sprite(250 + i * 60, 100 + j * 50, 'invadersMonster');
+            let monster = this.physics.add.sprite(200 + i * 60, 100 + j * 50, 'invadersMonster');
             invadersMonstersGroup.add(monster);
             for (let k = 0; k < shots.length; k++) {
                 this.physics.add.collider(monster, shots[k], monsterGotShot, null, this);
             }
         }
     }
-    invadersCount = 56;
+    invadersCount = 42;
 }
 
 function initPacman(x, y) {
