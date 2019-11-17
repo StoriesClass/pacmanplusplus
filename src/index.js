@@ -448,8 +448,13 @@ function pongBounce(paddle, ball) {
     paddle.body.velocity.y = 0;
 }
 
+function makePacmanInvincibleFor(ms) {
+    // TODO ...
+}
+
 function gameOver() {
     console.log("lost live/shield");
+    makePacmanInvincibleFor.call(this, 0.5);
     pacman.lives--;
     if (pacman.lives === 0) {
         this.physics.pause();
