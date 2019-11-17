@@ -526,9 +526,14 @@ function canGo(gameObject) {
 }
 
 function handleMouse() {
-    userPaddle.body.velocity.y = (input.y - userPaddle.body.y - userPaddle.height / 2) * 100;
-    userPaddle.body.velocity.y = Math.min(userPaddle.body.velocity.y, 10000);
-    userPaddle.body.velocity.y = Math.max(userPaddle.body.velocity.y, -10000);
+    if (Math.abs(input.y - userPaddle.body.y - userPaddle.height / 2) < 50) {
+        userPaddle.body.velocity.y = 0;
+        userPaddle.body.y = input.y - userPaddle.height / 2;
+    } else {
+        userPaddle.body.velocity.y = (input.y - userPaddle.body.y - userPaddle.height / 2) * 100;
+        userPaddle.body.velocity.y = Math.min(userPaddle.body.velocity.y, 10000);
+        userPaddle.body.velocity.y = Math.max(userPaddle.body.velocity.y, -10000);
+    }
 
     invadersCanon.body.velocity.x = (input.x - invadersCanon.body.x - invadersCanon.width / 2) * 100;
     invadersCanon.body.velocity.x = Math.min(invadersCanon.body.velocity.x, 10000);
