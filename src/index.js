@@ -11,6 +11,7 @@ import canonShotSprite from "./assets/canon_shot.png";
 import bigDot from "./assets/big_dot.png";
 import flaresPng from "./assets/particles/flares.png";
 import flaresJson from "./assets/particles/flares.json";
+import gameOverPic from "./assets/game_over.png";
 
 const CELL = 40;
 const WIDTH = CELL * 38;
@@ -56,6 +57,8 @@ let pongBall;
 let invadersCanon;
 let marioJumping = false;
 let marioCanJump = true;
+
+let gameOverSign;
 
 let pongBallSpeed = 500;
 
@@ -134,6 +137,7 @@ function preload() {
     this.load.image('invadersCanon', invadersCanonSprite);
     this.load.image('canonShot', canonShotSprite);
     this.load.image('bigDot', bigDot);
+    this.load.image('gameOver', gameOverPic);
 
     this.load.atlas('flares', flaresPng, flaresJson);
 }
@@ -283,6 +287,8 @@ function create() {
     });
     emitter.startFollow(pongBall);
 
+    gameOverSign = this.physics.add.sprite(WIDTH / 2, HEIGHT / 2, 'gameOver');
+    gameOverSign.setScale(0);
 }
 
 function updateInvadersMonsters() {
@@ -368,6 +374,7 @@ function pongBounce(paddle, ball) {
 function gameOver() {
     console.log("gg");
     this.physics.pause();
+    gameOverSign.setScale(1.8);
 }
 
 function ballHitPacman() {
