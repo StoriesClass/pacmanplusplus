@@ -95,7 +95,7 @@ let world = [
     "* *** ******* *** ***** *",
     "*   *                  **",
     "*************************"
-] ;
+];
 
 const Direction = {"up": 1, "down": 2, "left": 3, "right": 4};
 const GhostMode = {"normal": 1, "scared": 2};
@@ -235,7 +235,10 @@ function create() {
 
     setColliders.call(this);
 
-    paddleCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 70, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {fontSize: '30px', fill: '#fff'});
+    paddleCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 70, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {
+        fontSize: '30px',
+        fill: '#fff'
+    });
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
 }
 
@@ -288,6 +291,7 @@ function eatDot(pacman, dot) {
     dot.disableBody(true, true);
     score += multiplier;
 }
+
 function eatBigDot(pacman, bigDot) {
     bigDot.disableBody(true, true);
     score += multiplier * 10;
@@ -342,12 +346,12 @@ function spawnGhost() {
     for (let i = 0; i < world.length; i++) {
         const row = world[i];
         for (let j = 0; j < row.length; j++) {
-            if (newGhostPos === 0) {
-               initGhost.call(this, j, i);
-               return;
-            }
             if (row[j] === FREE) {
                 newGhostPos--;
+                if (newGhostPos === 0) {
+                    initGhost.call(this, j, i);
+                    return;
+                }
             }
         }
     }
@@ -581,7 +585,7 @@ function initGhost(x, y) {
 }
 
 function initBigDot(x, y) {
-    const bigDot = this.physics.add.sprite(x * CELL + CELL / 2,  y * CELL + CELL / 2, 'bigDot');
+    const bigDot = this.physics.add.sprite(x * CELL + CELL / 2, y * CELL + CELL / 2, 'bigDot');
 
     this.physics.add.collider(pacman, bigDot, null, eatBigDot, this);
 }
