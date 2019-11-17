@@ -539,9 +539,14 @@ function handleMouse() {
         userPaddle.body.velocity.y = Math.max(userPaddle.body.velocity.y, -10000);
     }
 
-    invadersCanon.body.velocity.x = (input.x - invadersCanon.body.x - invadersCanon.width / 2) * 100;
-    invadersCanon.body.velocity.x = Math.min(invadersCanon.body.velocity.x, 10000);
-    invadersCanon.body.velocity.x = Math.max(invadersCanon.body.velocity.x, -10000);
+    if (Math.abs(input.x - invadersCanon.body.x - invadersCanon.width / 2) < 50) {
+        invadersCanon.body.velocity.x = 0;
+        invadersCanon.body.x = input.x - invadersCanon.width / 2;
+    } else {
+        invadersCanon.body.velocity.x = (input.x - invadersCanon.body.x - invadersCanon.width / 2) * 100;
+        invadersCanon.body.velocity.x = Math.min(invadersCanon.body.velocity.x, 10000);
+        invadersCanon.body.velocity.x = Math.max(invadersCanon.body.velocity.x, -10000);
+    }
 }
 
 function makeObjectAtCell(x, y, group, key) {
