@@ -66,6 +66,7 @@ let canonShotsGroup;
 let invadersHorSlot = 0;
 let invadersMoveRight = true;
 let invadersCount = 0;
+let invadersVerSlot = 0;
 
 const LEFT_OFFSET = CELL * 6;
 const TOP_OFFSET = CELL * 2;
@@ -251,7 +252,7 @@ function create() {
         loop: true
     });
     this.time.addEvent({
-        delay: 700,
+        delay: 500,
         callback: () => updateInvadersMonsters.call(this),
         callbackScope: this,
         loop: true
@@ -304,19 +305,26 @@ function updateInvadersMonsters() {
         return;
     }
     let invaders = invadersMonstersGroup.children.entries;
-    if (invadersHorSlot === 8) {
-        for (let i = 0; i < invaders.length; i++) {
-            invaders[i].y += 30;
+    for (let i = 0; i < invaders.length; i++) {
+        if (invaders[i].body.y + 38 >= HEIGHT - 1) {
+            gameOver.call(this);
+            return;
         }
+    }
+    if (invadersHorSlot === 6) {
+        for (let i = 0; i < invaders.length; i++) {
+            invaders[i].y += 60;
+        }
+        invadersVerSlot++;
         invadersMoveRight = !invadersMoveRight;
         invadersHorSlot = 0;
         return;
     }
     for (let i = 0; i < invaders.length; i++) {
         if (invadersMoveRight) {
-            invaders[i].x += 40;
+            invaders[i].x += 50;
         } else {
-            invaders[i].x -= 40;
+            invaders[i].x -= 50;
         }
     }
     invadersHorSlot++;
@@ -324,16 +332,18 @@ function updateInvadersMonsters() {
 
 function spawnInvaders() {
     let shots = canonShotsGroup.children.entries;
-    for (let j = 0; j < 3; j++) {
-        for (let i = 0; i < 12; i++) {
-            let monster = this.physics.add.sprite(300 + i * 60, 100 + j * 50, 'invadersMonster');
+    invadersHorSlot = 0;
+    invadersVerSlot = 0;
+    for (let j = 0; j < 4; j++) {
+        for (let i = 0; i < 14; i++) {
+            let monster = this.physics.add.sprite(250 + i * 60, 100 + j * 50, 'invadersMonster');
             invadersMonstersGroup.add(monster);
             for (let k = 0; k < shots.length; k++) {
                 this.physics.add.collider(monster, shots[k], monsterGotShot, null, this);
             }
         }
     }
-    invadersCount = 36;
+    invadersCount = 56;
 }
 
 function initPacman(x, y) {
@@ -519,6 +529,11 @@ function checkBallBoundaries() {
     }
 }
 
+function ghostGotShot(ghost, shot) {
+    ghost.disableBody(true, true);
+    shot.disableBody(true, true);
+}
+
 function fireCanon() {
     let shot = this.physics.add.sprite(invadersCanon.x, invadersCanon.y - invadersCanon.height / 2 - 7, 'canonShot');
     shot.setVelocity(0, -1000);
@@ -526,6 +541,10 @@ function fireCanon() {
     let monsters = invadersMonstersGroup.children.entries;
     for (let i = 0; i < monsters.length; i++) {
         this.physics.add.collider(monsters[i], shot, monsterGotShot, null, this);
+    }
+    let ghosts = ghostsGroup.children.entries;
+    for (let j = 0; j < ghosts.length; j++) {
+        this.physics.add.collider(ghosts[j], shot, ghostGotShot, null, this);
     }
 }
 
@@ -694,6 +713,11 @@ function initGhost(x, y) {
 
     this.physics.add.collider(ghost, tilesGroup, null, () => changeGhostDirection(ghost), this);
     this.physics.add.collider(pacman, ghost, null, collideWithGhost, this);
+
+    let shots = canonShotsGroup.children.entries;
+    for (let i = 0; i < shots.length; i++) {
+        this.physics.add.collider(ghost, shots[i], ghostGotShot, null, this);
+    }
 }
 
 function initBigDot(x, y) {
