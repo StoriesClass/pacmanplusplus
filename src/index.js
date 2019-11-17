@@ -255,7 +255,6 @@ function initPacman(x, y) {
 function setColliders() {
     this.physics.add.collider(pacman, tilesGroup);
     this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
-    this.physics.add.collider(pacman, ghostsGroup, collideWithGhost, null, this);
     this.physics.add.collider(aiPaddle, pongBall, pongBounce, null, this);
     this.physics.add.collider(userPaddle, pongBall, pongBounce, null, this);
     this.physics.add.collider(pongBall, pacman, null, ballHitPacman, this);
@@ -292,7 +291,7 @@ function eatBigDot(pacman, bigDot) {
     score += multiplier * 10;
 
     forEachGhost(g => {
-        g.mode = GhostMode.scared;
+        g.ghostMode = GhostMode.scared;
         g.setTint(0x00ff00);
     });
 
@@ -300,7 +299,7 @@ function eatBigDot(pacman, bigDot) {
         delay: 10000,
         callback: () => {
             forEachGhost(g => {
-                g.mode = GhostMode.normal;
+                g.ghostMode = GhostMode.normal;
                 g.setTint(0xffffff);
             });
         },
@@ -317,10 +316,38 @@ function forEachGhost(callback) {
 }
 
 function collideWithGhost(pacman, ghost) {
+    console.log("colliding with a ghost");
     if (ghost.ghostMode === GhostMode.normal) {
         gameOver();
     } else if (ghost.ghostMode === GhostMode.scared) {
-        eatGhost(ghost);
+        eatGhost.call(this, ghost);
+        spawnGhost.call(this);
+    }
+}
+
+// This is very bad
+function spawnGhost() {
+    let freeSpace = 0;
+    for (let i = 0; i < world.length; i++) {
+        const row = world[i];
+        for (let j = 0; j < row.length; j++) {
+            if (row[j] === FREE) {
+                freeSpace++;
+            }
+        }
+    }
+    let newGhostPos = Phaser.Math.Between(0, freeSpace);
+    for (let i = 0; i < world.length; i++) {
+        const row = world[i];
+        for (let j = 0; j < row.length; j++) {
+            if (newGhostPos === 0) {
+               initGhost.call(this, j, i);
+               return;
+            }
+            if (row[j] === FREE) {
+                newGhostPos--;
+            }
+        }
     }
 }
 
@@ -538,6 +565,7 @@ function initGhost(x, y) {
     });
 
     this.physics.add.collider(ghost, tilesGroup, null, () => changeGhostDirection(ghost), this);
+    this.physics.add.collider(pacman, ghost, null, collideWithGhost, this);
 }
 
 function initBigDot(x, y) {
@@ -558,12 +586,20 @@ function initWorld() {
                 makeObjectAtCell(j, i, tilesGroup, 'tile');
             } else if (row[j] === FREE) {
                 makeObjectAtCell(j, i, dotsGroup, 'dot');
-            } else if (row[j] === GHOST) {
-                initGhost.call(this, j, i)
             } else if (row[j] === PACMAN) {
                 initPacman.call(this, j, i);
             } else if (row[j] === BIG_DOT) {
                 initBigDot.call(this, j, i);
+            }
+        }
+    }
+
+    for (let i = 0; i < world.length; i++) {
+        const row = world[i];
+        for (let j = 0; j < row.length; j++) {
+            if (row[j] === GHOST) {
+                // we want to initialize ghosts after pacman initialization
+                initGhost.call(this, j, i)
             }
         }
     }
