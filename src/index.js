@@ -21,6 +21,7 @@ const PADDLE_WIDTH = 20;
 const PADDLE_LENGTH_DELTA = 50;
 const BASE_PADDLE_COST = 10;
 
+
 const config = {
     type: Phaser.AUTO,
     parent: "phaser-example",
@@ -81,14 +82,14 @@ let world = [
     "*  g      *    g* *     *",
     "***** *********** *   * *",
     "* *       *  **   *   * *",
-    "*     *** * **  *   *   *",
+    "* d   *** * **  *   *   *",
     "* ** ** * *  * *** ** * *",
     "*       * *  g      * * *",
     "* * ** ** *** * *** * ***",
-    "* * *   *     *   * * * *",
+    "* * *   *   d *   * * * *",
     "* * * * ***** *** * * * *",
     "* *   *   * *   * * * * *",
-    "* *   *   *   * *  g*   *",
+    "* *   *   * d * *  g*   *",
     "*** * * *** * * * * *** *",
     "*       *   *** * *   * *",
     "* *** * * ***   * *** * *",
@@ -245,40 +246,10 @@ function create() {
     });
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
 
-    const particles = this.add.particles('flares');
-
-    const emitter1 = particles.createEmitter({
-        frame: 'blue',
-        x: 400,
-        y: 300,
-        speed: 200,
-        blendMode: 'ADD',
-        lifespan: 1000
-    });
-
-    const emitter2 = particles.createEmitter({
-        frame: 'red',
-        x: 400,
-        y: 300,
-        speed: 200,
-        scale: 0.5,
-        blendMode: 'ADD',
-        lifespan: 2000
-    });
-
-    const emitter3 = particles.createEmitter({
-        frame: 'yellow',
-        x: 400,
-        y: 300,
-        speed: 200,
-        scale: {min: 0, max: 1},
-        blendMode: 'ADD',
-        lifespan: 2500
-    });
 }
 
 function initPacman(x, y) {
-    pacman = this.physics.add.sprite(CELL * x + CELL / 2, CELL * y + CELL / 2, 'pacmanSheet');
+    pacman = this.physics.add.sprite(LEFT_OFFSET + CELL * x + CELL / 2, TOP_OFFSET + CELL * y + CELL / 2, 'pacmanSheet');
     pacman.play('right');
     pacman.setCollideWorldBounds(true);
     // A hack so pacman can easily can get between the tiles
@@ -329,6 +300,7 @@ function eatDot(pacman, dot) {
 
 function eatBigDot(pacman, bigDot) {
     bigDot.disableBody(true, true);
+    bigDot.particles.destroy();
     score += multiplier * 10;
 
     forEachGhost(g => {
@@ -608,7 +580,34 @@ function initGhost(x, y) {
 }
 
 function initBigDot(x, y) {
-    const bigDot = this.physics.add.sprite(x * CELL + CELL / 2, y * CELL + CELL / 2, 'bigDot');
+    const X = LEFT_OFFSET+  x * CELL + CELL / 2;
+    const Y = TOP_OFFSET + y * CELL + CELL / 2;
+    const bigDot = this.physics.add.sprite(X, Y, 'bigDot');
+    bigDot.setAlpha(0.3);
+
+    const emitterScale = 0.1;
+    const emitterSpeed = 8;
+
+    bigDot.particles = this.add.particles('flares');
+    bigDot.emitter1 = bigDot.particles.createEmitter({
+        frame: 'blue',
+        x: X,
+        y: Y,
+        speed: emitterSpeed,
+        blendMode: 'ADD',
+        lifespan: 2000,
+        scale: emitterScale
+    });
+
+    bigDot.emitter2 = bigDot.particles.createEmitter({
+        frame: 'red',
+        x: X,
+        y: Y,
+        speed: emitterSpeed,
+        scale: emitterScale,
+        blendMode: 'ADD',
+        lifespan: 1000,
+    });
 
     this.physics.add.collider(pacman, bigDot, null, eatBigDot, this);
 }
