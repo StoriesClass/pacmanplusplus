@@ -400,7 +400,7 @@ function gameOver() {
 }
 
 function updateShieldOverlay() {
-    shieldSprite.setAlpha(pacman.lives/5);
+    shieldSprite.setAlpha((pacman.lives-1)/5);
 }
 
 function ballHitPacman() {
