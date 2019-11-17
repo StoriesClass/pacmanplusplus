@@ -183,7 +183,7 @@ function create() {
     this.anims.create({
         key: 'marioJump',
         frames: this.anims.generateFrameNumbers('marioSheet', {start: 1, end: 0}),
-        frameRate: 20,
+        frameRate: 10,
         repeat: 0
     });
 
@@ -224,8 +224,8 @@ function create() {
         loop: true
     });
 
-    mario = this.add.sprite(WIDTH - CELL * 3, HEIGHT - CELL * 3, 'marioSheet');
-    mario.setDisplaySize(CELL, CELL * 4);
+    mario = this.add.sprite(WIDTH - CELL * 3, HEIGHT - CELL * 5, 'marioSheet');
+    mario.setDisplaySize(CELL * 2, CELL * 8);
     mario.on('animationcomplete', marioFinishesJumping, this);
 
     // order matters!
@@ -468,7 +468,7 @@ function makeObjectAtCell(x, y, group, key) {
 }
 
 function initGhost(x, y) {
-    const ghost = this.physics.add.sprite(LEFT + x * CELL + CELL / 2, RIGHT + y * CELL + CELL / 2, 'pacmanSheet');
+    const ghost = this.physics.add.sprite(LEFT + x * CELL + CELL / 2, y * CELL + CELL / 2, 'pacmanSheet');
     ghost.myAnim = {
         'left': 'red_left',
         'right': 'red_right',
