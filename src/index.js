@@ -10,6 +10,9 @@ import invadersCanonSprite from "./assets/invaders_canon.png";
 import canonShotSprite from "./assets/canon_shot.png";
 import bigDot from "./assets/big_dot.png";
 
+import flaresPng from "./assets/flares.png";
+import flaresJson from "./assets/flares.json";
+
 const CELL = 40;
 const WIDTH = CELL * 38;
 const HEIGHT = CELL * 32;
@@ -127,6 +130,8 @@ function preload() {
     this.load.image('invadersCanon', invadersCanonSprite);
     this.load.image('canonShot', canonShotSprite);
     this.load.image('bigDot', bigDot);
+
+    this.load.atlas('flares', flaresPng, flaresJson);
 }
 
 function initGhosts() {
@@ -195,6 +200,19 @@ function create() {
         repeat: 0
     });
 
+    let particles = this.add.particles('flares');
+
+    let emitter = particles.createEmitter({
+        frame: 'blue',
+        radial: false,
+        lifespan: 2000,
+        speedX: { min: 200, max: 400 },
+        quantity: 4,
+        gravityY: -50,
+        scale: { start: 0.6, end: 0, ease: 'Power3' },
+        blendMode: 'ADD'
+    });
+
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.mousePointer;
 
@@ -232,6 +250,8 @@ function create() {
     pongBall.setCollideWorldBounds(true);
     pongBall.setVelocity(pongBallSpeed, 0);
     pongBall.setBounce(1);
+
+    emitter.startFollow(pongBall);
 
     setColliders.call(this);
 
