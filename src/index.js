@@ -10,13 +10,13 @@ import invadersCanonSprite from "./assets/invaders_canon.png";
 import canonShotSprite from "./assets/canon_shot.png";
 
 const CELL = 40;
-const WIDTH = CELL*38;
-const HEIGHT = CELL*25;
+const WIDTH = CELL * 38;
+const HEIGHT = CELL * 28;
 const PACSIZE = 36;
 
 const PADDLE_WIDTH = 20;
 const PADDLE_LENGTH_DELTA = 50;
-const PADDLE_COST = 10;
+const BASE_PADDLE_COST = 10;
 
 const config = {
     type: Phaser.AUTO,
@@ -59,11 +59,11 @@ let invadersMonstersGroup;
 let canonShotsGroup;
 
 const LEFT = CELL * 6;
-const RIGHT = CELL * 6;
 const OBSTACLE = '*';
 const FREE = '.';
 const GHOST = 'g';
 let world = [
+    "*************************",
     "*     *       *         *",
     "* * *** *** * * ******* *",
     "* *   *   * *   *     * *",
@@ -72,27 +72,25 @@ let world = [
     "*** ***** *** *** * *** *",
     "*   *   *   * * * *     *",
     "* ***** *** * * * * *****",
-    "*  g      *    g* * *   *",
-    "***** *********** * * * *",
-    "* *   *   *   *   *   * *",
-    "* * *** * * * * *** *****",
-    "*     * * * *   *   *   *",
+    "*  g      *    g* *     *",
+    "***** *********** *   * *",
+    "* *       *  **   *   * *",
+    "*     *** * **  *   *   *",
     "* ** ** * *  * *** ** * *",
     "*       * *  g      * * *",
     "* * ** ** *** * *** * ***",
     "* * *   *     *   * * * *",
     "* * * * ***** *** * * * *",
     "* *   *   * *   * * * * *",
-    "* ** **** * *** *** * * *",
     "* *   *   *   * *  g*   *",
     "*** * * *** * * * * *** *",
-    "*       *   * * * *   * *",
-    "* ******* ***   * *** * *",
-    "*   *   *   * *   *     *",
-    "* * * * * * *** *** *****",
+    "*       *   *** * *   * *",
+    "* *** * * ***   * *** * *",
+    "*   * ***   ***   *     *",
     "* *   *   *     *   *   *",
     "* *** ******* *** ***** *",
-    "*   *                  **"
+    "*   *                  **",
+    "*************************"
 ] ;
 
 const Direction = {"up": 1, "down": 2, "left": 3, "right": 4};
@@ -105,7 +103,10 @@ let ghostsGroup;
 let score = 0;
 let coins = 0;
 let multiplier = 1;
-let paddleLength = 100;
+
+let paddleLength = 120;
+let paddleCostText;
+let paddleCost = BASE_PADDLE_COST;
 
 function preload() {
     this.load.spritesheet('pacmanSheet', pacmanSheet, {frameWidth: 14, frameHeight: 14});
@@ -183,7 +184,7 @@ function create() {
     this.anims.create({
         key: 'marioJump',
         frames: this.anims.generateFrameNumbers('marioSheet', {start: 1, end: 0}),
-        frameRate: 10,
+        frameRate: 15,
         repeat: 0
     });
 
@@ -203,7 +204,7 @@ function create() {
     input = this.input.mousePointer;
 
     scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
-    coinsText = this.add.text(WIDTH - 200, 16, 'coins: 0', {fontSize: '32px', fill: '#fff'});
+    coinsText = this.add.text(WIDTH - 230, 16, 'coins: 0', {fontSize: '32px', fill: '#fff'});
 
     aiPaddle = this.physics.add.sprite(10, 300, 'pongPaddle');
     aiPaddle.setCollideWorldBounds(true);
@@ -239,7 +240,7 @@ function create() {
 
     setColliders.call(this);
 
-    this.add.text(32, 550, '"P" to upgrade paddle for ' + PADDLE_COST + ' coins', {fontSize: '20px', fill: '#fff'});
+    paddleCostText = this.add.text(WIDTH / 2 - 100, HEIGHT - 100, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {fontSize: '30px', fill: '#fff'});
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
 }
 
@@ -513,9 +514,11 @@ function initWorld() {
 }
 
 function upgradePaddle() {
-    if (coins >= PADDLE_COST) {
-        coins -= PADDLE_COST;
+    if (coins >= paddleCost) {
+        coins -= paddleCost;
         paddleLength += PADDLE_LENGTH_DELTA;
         userPaddle.setDisplaySize(PADDLE_WIDTH, paddleLength);
+        paddleCost += BASE_PADDLE_COST;
+        paddleCostText.setText('"P" to upgrade paddle for ' + paddleCost + ' coins');
     }
 }
