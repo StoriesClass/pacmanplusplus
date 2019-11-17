@@ -9,6 +9,8 @@ import invadersMonsterSprite from "./assets/invaders_monster.png";
 import invadersCanonSprite from "./assets/invaders_canon.png";
 import canonShotSprite from "./assets/canon_shot.png";
 import bigDot from "./assets/big_dot.png";
+import flaresPng from "./assets/particles/flares.png";
+import flaresJson from "./assets/particles/flares.json";
 
 import flaresPng from "./assets/flares.png";
 import flaresJson from "./assets/flares.json";
@@ -16,11 +18,12 @@ import flaresJson from "./assets/flares.json";
 const CELL = 40;
 const WIDTH = CELL * 38;
 const HEIGHT = CELL * 32;
-const PACSIZE = 36;
+const PACSIZE = 32;
 
 const PADDLE_WIDTH = 20;
 const PADDLE_LENGTH_DELTA = 50;
 const BASE_PADDLE_COST = 10;
+
 
 const config = {
     type: Phaser.AUTO,
@@ -62,6 +65,10 @@ let pongBallSpeed = 500;
 let invadersMonstersGroup;
 let canonShotsGroup;
 
+let invadersHorSlot = 0;
+let invadersMoveRight = true;
+let invadersCount = 0;
+
 const LEFT_OFFSET = CELL * 6;
 const TOP_OFFSET = CELL * 2;
 const OBSTACLE = '*';
@@ -82,14 +89,14 @@ let world = [
     "*  g      *    g* *     *",
     "***** *********** *   * *",
     "* *       *  **   *   * *",
-    "*     *** * **  *   *   *",
+    "* d   *** * **  *   *   *",
     "* ** ** * *  * *** ** * *",
     "*       * *  g      * * *",
     "* * ** ** *** * *** * ***",
-    "* * *   *     *   * * * *",
+    "* * *   *   d *   * * * *",
     "* * * * ***** *** * * * *",
     "* *   *   * *   * * * * *",
-    "* *   *   *   * *  g*   *",
+    "* *   *   * d * *  g*   *",
     "*** * * *** * * * * *** *",
     "*       *   *** * *   * *",
     "* *** * * ***   * *** * *",
@@ -237,6 +244,12 @@ function create() {
         callbackScope: this,
         loop: true
     });
+    this.time.addEvent({
+        delay: 700,
+        callback: () => updateInvadersMonsters.call(this),
+        callbackScope: this,
+        loop: true
+    });
 
     mario = this.add.sprite(WIDTH - CELL * 3.5, HEIGHT - CELL * 5, 'marioSheet');
     mario.setDisplaySize(CELL * 2, CELL * 8);
@@ -260,10 +273,49 @@ function create() {
         fill: '#fff'
     });
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
+
+}
+
+function updateInvadersMonsters() {
+    if (invadersCount === 0) {
+        spawnInvaders.call(this);
+        return;
+    }
+    let invaders = invadersMonstersGroup.children.entries;
+    if (invadersHorSlot === 8) {
+        for (let i = 0; i < invaders.length; i++) {
+            invaders[i].y += 30;
+        }
+        invadersMoveRight = !invadersMoveRight;
+        invadersHorSlot = 0;
+        return;
+    }
+    for (let i = 0; i < invaders.length; i++) {
+        if (invadersMoveRight) {
+            invaders[i].x += 40;
+        } else {
+            invaders[i].x -= 40;
+        }
+    }
+    invadersHorSlot++;
+}
+
+function spawnInvaders() {
+    let shots = canonShotsGroup.children.entries;
+    for (let j = 0; j < 3; j++) {
+        for (let i = 0; i < 12; i++) {
+            let monster = this.physics.add.sprite(300 + i * 60, 100 + j * 50, 'invadersMonster');
+            invadersMonstersGroup.add(monster);
+            for (let k = 0; k < shots.length; k++) {
+                this.physics.add.collider(monster, shots[k], monsterGotShot, null, this);
+            }
+        }
+    }
+    invadersCount = 36;
 }
 
 function initPacman(x, y) {
-    pacman = this.physics.add.sprite(CELL * x + CELL / 2, CELL * y + CELL / 2, 'pacmanSheet');
+    pacman = this.physics.add.sprite(LEFT_OFFSET + CELL * x + CELL / 2, TOP_OFFSET + CELL * y + CELL / 2, 'pacmanSheet');
     pacman.play('right');
     pacman.setCollideWorldBounds(true);
     // A hack so pacman can easily can get between the tiles
@@ -282,7 +334,13 @@ function setColliders() {
     this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
     this.physics.add.collider(aiPaddle, pongBall, pongBounce, null, this);
     this.physics.add.collider(userPaddle, pongBall, pongBounce, null, this);
-    this.physics.add.collider(pongBall, pacman, null, ballHitPacman, this);
+    this.physics.add.collider(pongBall, pacman, ballHitPacman, null, this);
+}
+
+function monsterGotShot(monster, shot) {
+    monster.disableBody(true, true);
+    shot.disableBody(true, true);
+    invadersCount--;
 }
 
 function pongBounce(paddle, ball) {
@@ -314,6 +372,7 @@ function eatDot(pacman, dot) {
 
 function eatBigDot(pacman, bigDot) {
     bigDot.disableBody(true, true);
+    bigDot.particles.destroy();
     score += multiplier * 10;
 
     forEachGhost(g => {
@@ -422,7 +481,11 @@ function update() {
 function fireCanon() {
     let shot = this.physics.add.sprite(invadersCanon.x, invadersCanon.y - invadersCanon.height / 2 - 5, 'canonShot');
     shot.setVelocity(0, -1000);
-    // shot.setCollideWorldBounds(true);
+    canonShotsGroup.add(shot);
+    let monsters = invadersMonstersGroup.children.entries;
+    for (let i = 0; i < monsters.length; i++) {
+        this.physics.add.collider(monsters[i], shot, monsterGotShot, null, this);
+    }
 }
 
 function updateAiPaddle() {
@@ -452,7 +515,7 @@ function updateDirection(object, directionIntent) {
     object.nextDirection = directionIntent;
 }
 
-const PACSPEED = 3;
+const PACSPEED = 4;
 
 function moveObject(object) {
     const direction = object.direction;
@@ -509,6 +572,7 @@ function handleKeyboard() {
 
     if (pacmanCanGo) {
         pacman.direction = pacman.nextDirection;
+        moveObject(pacman);
     }
 }
 
@@ -517,18 +581,20 @@ function canGo(gameObject) {
     const rectangle = gameObject.getBounds();
     const nextDirection = gameObject.nextDirection;
     let dx = 0, dy = 0;
+    const MAGIC = 10; // sorry for this
     if (nextDirection === Direction.left) {
-        dx = -7;
+        dx = -MAGIC;
     }
-    if (nextDirection === Direction.right) {
-        dx = 7;
+    else if (nextDirection === Direction.right) {
+        dx = MAGIC;
     }
-    if (nextDirection === Direction.down) {
-        dy = 7;
+    else if (nextDirection === Direction.down) {
+        dy = MAGIC;
     }
-    if (nextDirection === Direction.up) {
-        dy = -7;
+    else if (nextDirection === Direction.up) {
+        dy = -MAGIC;
     }
+
     const nextFrameRectangle =
         new Phaser.Geom.Rectangle(rectangle.left + dx, rectangle.top + dy, PACSIZE, PACSIZE);
 
@@ -541,10 +607,6 @@ function canGo(gameObject) {
             overlaps = true;
         }
         //console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
-    }
-
-    if (!overlaps) {
-        //console.log("NO overlap");
     }
 
     return !overlaps;
@@ -594,7 +656,34 @@ function initGhost(x, y) {
 }
 
 function initBigDot(x, y) {
-    const bigDot = this.physics.add.sprite(x * CELL + CELL / 2, y * CELL + CELL / 2, 'bigDot');
+    const X = LEFT_OFFSET+  x * CELL + CELL / 2;
+    const Y = TOP_OFFSET + y * CELL + CELL / 2;
+    const bigDot = this.physics.add.sprite(X, Y, 'bigDot');
+    bigDot.setAlpha(0.3);
+
+    const emitterScale = 0.1;
+    const emitterSpeed = 8;
+
+    bigDot.particles = this.add.particles('flares');
+    bigDot.emitter1 = bigDot.particles.createEmitter({
+        frame: 'blue',
+        x: X,
+        y: Y,
+        speed: emitterSpeed,
+        blendMode: 'ADD',
+        lifespan: 2000,
+        scale: emitterScale
+    });
+
+    bigDot.emitter2 = bigDot.particles.createEmitter({
+        frame: 'red',
+        x: X,
+        y: Y,
+        speed: emitterSpeed,
+        scale: emitterScale,
+        blendMode: 'ADD',
+        lifespan: 1000,
+    });
 
     this.physics.add.collider(pacman, bigDot, null, eatBigDot, this);
 }
