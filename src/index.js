@@ -324,7 +324,7 @@ function forEachGhost(callback) {
 function collideWithGhost(pacman, ghost) {
     console.log("colliding with a ghost");
     if (ghost.ghostMode === GhostMode.normal) {
-        gameOver();
+        gameOver.call(this);
     } else if (ghost.ghostMode === GhostMode.scared) {
         eatGhost.call(this, ghost);
         spawnGhost.call(this);
