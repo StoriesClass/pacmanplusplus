@@ -12,7 +12,7 @@ import bigDot from "./assets/big_dot.png";
 
 const CELL = 40;
 const WIDTH = CELL * 38;
-const HEIGHT = CELL * 28;
+const HEIGHT = CELL * 32;
 const PACSIZE = 36;
 
 const PADDLE_WIDTH = 20;
@@ -59,7 +59,8 @@ let pongBallSpeed = 500;
 let invadersMonstersGroup;
 let canonShotsGroup;
 
-const LEFT = CELL * 6;
+const LEFT_OFFSET = CELL * 6;
+const TOP_OFFSET = CELL * 2;
 const OBSTACLE = '*';
 const FREE = ' ';
 const GHOST = 'g';
@@ -71,7 +72,7 @@ let world = [
     "* * ***p*** * * ******* *",
     "* *   *  d* *   *     * *",
     "* *** * *** ********* * *",
-    "*   *   *   *        * *",
+    "*   *   *   *        *  *",
     "*** ***** *** *** * *** *",
     "*   *   *   * * * *     *",
     "* ***** *** * * * * *****",
@@ -234,7 +235,7 @@ function create() {
 
     setColliders.call(this);
 
-    paddleCostText = this.add.text(WIDTH / 2 - 100, HEIGHT - 100, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {fontSize: '30px', fill: '#fff'});
+    paddleCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 70, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {fontSize: '30px', fill: '#fff'});
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
 }
 
@@ -508,14 +509,14 @@ function handleMouse() {
 }
 
 function makeObjectAtCell(x, y, group, key) {
-    x = LEFT + x * CELL + CELL / 2;
-    y = y * CELL + CELL / 2;
+    x = LEFT_OFFSET + x * CELL + CELL / 2;
+    y = TOP_OFFSET + y * CELL + CELL / 2;
 
     return group.create(x, y, key);
 }
 
 function initGhost(x, y) {
-    const ghost = this.physics.add.sprite(LEFT + x * CELL + CELL / 2, y * CELL + CELL / 2, 'pacmanSheet');
+    const ghost = this.physics.add.sprite(LEFT_OFFSET + x * CELL + CELL / 2, TOP_OFFSET + y * CELL + CELL / 2, 'pacmanSheet');
     ghost.myAnim = {
         'left': 'red_left',
         'right': 'red_right',
