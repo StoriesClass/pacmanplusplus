@@ -498,12 +498,12 @@ function canGo(gameObject) {
 
 function handleMouse() {
     userPaddle.body.velocity.y = (input.y - userPaddle.body.y - userPaddle.height / 2) * 100;
-    userPaddle.body.velocity.y = Math.min(userPaddle.body.velocity.y, 1000);
-    userPaddle.body.velocity.y = Math.max(userPaddle.body.velocity.y, -1000);
+    userPaddle.body.velocity.y = Math.min(userPaddle.body.velocity.y, 10000);
+    userPaddle.body.velocity.y = Math.max(userPaddle.body.velocity.y, -10000);
 
     invadersCanon.body.velocity.x = (input.x - invadersCanon.body.x - invadersCanon.width / 2) * 100;
-    invadersCanon.body.velocity.x = Math.min(invadersCanon.body.velocity.x, 1000);
-    invadersCanon.body.velocity.x = Math.max(invadersCanon.body.velocity.x, -1000);
+    invadersCanon.body.velocity.x = Math.min(invadersCanon.body.velocity.x, 10000);
+    invadersCanon.body.velocity.x = Math.max(invadersCanon.body.velocity.x, -10000);
 }
 
 function makeObjectAtCell(x, y, group, key) {
