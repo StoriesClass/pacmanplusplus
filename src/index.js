@@ -73,7 +73,7 @@ let world = [
     "* *   *  d* *   *     * *",
     "* *** * *** ********* * *",
     "*   *   *   *        *  *",
-    "*** ***** *** *** * *** *",
+    "*** ** ** *** *** * *** *",
     "*   *   *   * * * *     *",
     "* ***** *** * * * * *****",
     "*  g      *    g* *     *",
@@ -91,9 +91,9 @@ let world = [
     "*       *   *** * *   * *",
     "* *** * * ***   * *** * *",
     "*   * ***   ***   *     *",
-    "* *   *   *     *   *   *",
+    "* *       *     *   *   *",
     "* *** ******* *** ***** *",
-    "*   *                  **",
+    "*                       *",
     "*************************"
 ];
 
@@ -220,7 +220,7 @@ function create() {
         loop: true
     });
 
-    mario = this.add.sprite(WIDTH - CELL * 3, HEIGHT - CELL * 5, 'marioSheet');
+    mario = this.add.sprite(WIDTH - CELL * 3.5, HEIGHT - CELL * 5, 'marioSheet');
     mario.setDisplaySize(CELL * 2, CELL * 8);
     mario.on('animationcomplete', marioFinishesJumping, this);
 
@@ -235,7 +235,7 @@ function create() {
 
     setColliders.call(this);
 
-    paddleCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 70, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {
+    paddleCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 60, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {
         fontSize: '30px',
         fill: '#fff'
     });
