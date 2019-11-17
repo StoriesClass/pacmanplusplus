@@ -212,10 +212,6 @@ function create() {
     userPaddle.setCollideWorldBounds(true);
     userPaddle.setBounce(1);
     userPaddle.setDisplaySize(PADDLE_WIDTH, paddleLength);
-    pongBall = this.physics.add.sprite(35, 300, 'pongBall');
-    pongBall.setCollideWorldBounds(true);
-    pongBall.setVelocity(pongBallSpeed, 0);
-    pongBall.setBounce(1);
     invadersCanon = this.physics.add.sprite(WIDTH / 2, HEIGHT - 30 / 2, 'invadersCanon');
 
     invadersMonstersGroup = this.physics.add.staticGroup();
@@ -235,6 +231,12 @@ function create() {
     // order matters!
     initWorld.call(this);
     initGhosts.call(this);
+
+    pongBall = this.physics.add.sprite(35, 300, 'pongBall');
+    pongBall.setCollideWorldBounds(true);
+    pongBall.setVelocity(pongBallSpeed, 0);
+    pongBall.setBounce(1);
+
     setColliders.call(this);
 
     this.add.text(32, 550, '"P" to upgrade paddle for ' + PADDLE_COST + ' coins', {fontSize: '20px', fill: '#fff'});
