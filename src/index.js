@@ -78,6 +78,7 @@ const FREE = ' ';
 const GHOST = 'g';
 const PACMAN = 'p';
 const BIG_DOT = 'd';
+const ANOTHER_BIT_DOT = 'a';
 let world = [
     "*************************",
     "*     *       *         *",
@@ -105,7 +106,7 @@ let world = [
     "*   * ***   ***   *     *",
     "* *       *     *   *   *",
     "* *** ******* *** ***** *",
-    "*                       *",
+    "*        a              *",
     "*************************"
 ];
 
@@ -224,6 +225,13 @@ function create() {
     this.time.addEvent({
         delay: 15000,
         callback: () => spawnCreature.call(this, initBigDot),
+        callbackScope: this,
+        loop: true
+    });
+
+    this.time.addEvent({
+        delay: 20000,
+        callback: () => spawnCreature.call(this, initAnotherBigDot),
         callbackScope: this,
         loop: true
     });
@@ -386,6 +394,12 @@ function monsterGotShot(monster, shot) {
     invadersCount--;
 }
 
+function ballHitsInvader(ball, invader) {
+    invader.disableBody(true, true);
+    invadersCount--;
+    return false;
+}
+
 function pongBounce(paddle, ball) {
     let hitPos = ((paddle.body.y + aiPaddle.height / 2) - (ball.body.y + pongBall.height / 2)) / (aiPaddle.height / 2);
     let angle = hitPos * (Math.PI * 5 / 12);
@@ -426,7 +440,7 @@ function eatDot(pacman, dot) {
 function eatBigDot(pacman, bigDot) {
     bigDot.disableBody(true, true);
     bigDot.particles.destroy();
-    score += multiplier * 10;
+    score += multiplier * 3;
 
     forEachGhost(g => {
         g.ghostMode = GhostMode.scared;
@@ -444,6 +458,27 @@ function eatBigDot(pacman, bigDot) {
         callbackScope: this,
         loop: false
     })
+}
+
+function eatAnotherBigDot(pacman, anotherBigDot) {
+    anotherBigDot.disableBody(true, true);
+    anotherBigDot.particles.destroy();
+    score += multiplier * 3;
+
+    const inv = invadersMonstersGroup.children.entries;
+    for (let i = 0; i < inv.length; i++) {
+        let collider = this.physics.add.collider(pongBall, inv[i], null, ballHitsInvader);
+
+        this.time.addEvent({
+            delay: 10000,
+            callback: () => {
+                console.log('REMOVE COLLIDER');
+                this.physics.world.removeCollider(collider);
+            },
+            callbackScope: this,
+            loop: false
+        })
+    }
 }
 
 function forEachGhost(callback) {
@@ -767,17 +802,30 @@ function initBigDot(x, y) {
         scale: emitterScale
     });
 
-    bigDot.emitter2 = bigDot.particles.createEmitter({
+    this.physics.add.collider(pacman, bigDot, null, eatBigDot, this);
+}
+
+function initAnotherBigDot(x, y) {
+    const X = LEFT_OFFSET+  x * CELL + CELL / 2;
+    const Y = TOP_OFFSET + y * CELL + CELL / 2;
+    const anotherBigDot = this.physics.add.sprite(X, Y, 'anotherBigDot');
+    anotherBigDot.setAlpha(0.3);
+
+    const emitterScale = 0.1;
+    const emitterSpeed = 8;
+
+    anotherBigDot.particles = this.add.particles('flares');
+    anotherBigDot.emitter1 = anotherBigDot.particles.createEmitter({
         frame: 'red',
         x: X,
         y: Y,
         speed: emitterSpeed,
-        scale: emitterScale,
         blendMode: 'ADD',
-        lifespan: 1000,
+        lifespan: 2000,
+        scale: emitterScale
     });
 
-    this.physics.add.collider(pacman, bigDot, null, eatBigDot, this);
+    this.physics.add.collider(pacman, anotherBigDot, null, eatAnotherBigDot, this);
 }
 
 // creates and draws the physics world (pWorld)
@@ -796,6 +844,8 @@ function initWorld() {
                 initPacman.call(this, j, i);
             } else if (row[j] === BIG_DOT) {
                 initBigDot.call(this, j, i);
+            } else if (row[j] === ANOTHER_BIT_DOT) {
+                initAnotherBigDot.call(this, j, i);
             }
         }
     }
