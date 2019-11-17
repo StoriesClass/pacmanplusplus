@@ -9,11 +9,13 @@ import invadersMonsterSprite from "./assets/invaders_monster.png";
 import invadersCanonSprite from "./assets/invaders_canon.png";
 import canonShotSprite from "./assets/canon_shot.png";
 import bigDot from "./assets/big_dot.png";
+import flaresPng from "./assets/particles/flares.png";
+import flaresJson from "./assets/particles/flares.json";
 
 const CELL = 40;
 const WIDTH = CELL * 38;
 const HEIGHT = CELL * 32;
-const PACSIZE = 36;
+const PACSIZE = 32;
 
 const PADDLE_WIDTH = 20;
 const PADDLE_LENGTH_DELTA = 50;
@@ -93,7 +95,7 @@ let world = [
     "*   * ***   ***   *     *",
     "* *   *   *     *   *   *",
     "* *** ******* *** ***** *",
-    "*   *                  **",
+    "*   *                   *",
     "*************************"
 ];
 
@@ -127,6 +129,8 @@ function preload() {
     this.load.image('invadersCanon', invadersCanonSprite);
     this.load.image('canonShot', canonShotSprite);
     this.load.image('bigDot', bigDot);
+
+    this.load.atlas('flares', flaresPng, flaresJson);
 }
 
 function initGhosts() {
@@ -240,6 +244,37 @@ function create() {
         fill: '#fff'
     });
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
+
+    const particles = this.add.particles('flares');
+
+    const emitter1 = particles.createEmitter({
+        frame: 'blue',
+        x: 400,
+        y: 300,
+        speed: 200,
+        blendMode: 'ADD',
+        lifespan: 1000
+    });
+
+    const emitter2 = particles.createEmitter({
+        frame: 'red',
+        x: 400,
+        y: 300,
+        speed: 200,
+        scale: 0.5,
+        blendMode: 'ADD',
+        lifespan: 2000
+    });
+
+    const emitter3 = particles.createEmitter({
+        frame: 'yellow',
+        x: 400,
+        y: 300,
+        speed: 200,
+        scale: {min: 0, max: 1},
+        blendMode: 'ADD',
+        lifespan: 2500
+    });
 }
 
 function initPacman(x, y) {
@@ -431,7 +466,7 @@ function updateDirection(object, directionIntent) {
     object.nextDirection = directionIntent;
 }
 
-const PACSPEED = 3;
+const PACSPEED = 4;
 
 function moveObject(object) {
     const direction = object.direction;
@@ -488,6 +523,7 @@ function handleKeyboard() {
 
     if (pacmanCanGo) {
         pacman.direction = pacman.nextDirection;
+        moveObject(pacman);
     }
 }
 
@@ -496,18 +532,20 @@ function canGo(gameObject) {
     const rectangle = gameObject.getBounds();
     const nextDirection = gameObject.nextDirection;
     let dx = 0, dy = 0;
+    const MAGIC = 10; // sorry for this
     if (nextDirection === Direction.left) {
-        dx = -7;
+        dx = -MAGIC;
     }
-    if (nextDirection === Direction.right) {
-        dx = 7;
+    else if (nextDirection === Direction.right) {
+        dx = MAGIC;
     }
-    if (nextDirection === Direction.down) {
-        dy = 7;
+    else if (nextDirection === Direction.down) {
+        dy = MAGIC;
     }
-    if (nextDirection === Direction.up) {
-        dy = -7;
+    else if (nextDirection === Direction.up) {
+        dy = -MAGIC;
     }
+
     const nextFrameRectangle =
         new Phaser.Geom.Rectangle(rectangle.left + dx, rectangle.top + dy, PACSIZE, PACSIZE);
 
@@ -520,10 +558,6 @@ function canGo(gameObject) {
             overlaps = true;
         }
         //console.log("Checking if", nextFrameRectangle, " and ", tile.getBounds(), " do overlap")
-    }
-
-    if (!overlaps) {
-        //console.log("NO overlap");
     }
 
     return !overlaps;
