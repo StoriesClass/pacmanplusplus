@@ -309,8 +309,8 @@ function create() {
     let emitter = particles.createEmitter({
         frame: 'yellow',
         radial: false,
-        lifespan: 2000,
-        speedX: { min: 200, max: 400 },
+        lifespan: 1000,
+        // speedX: { min: -400, max: -400 },
         quantity: 2,
         gravityY: -50,
         scale: { start: 0.6, end: 0, ease: 'Power3' },
@@ -928,7 +928,7 @@ function upgradePaddle() {
         paddleLength += PADDLE_LENGTH_DELTA;
         userPaddle.setDisplaySize(PADDLE_WIDTH, paddleLength);
         paddleCost += BASE_PADDLE_COST;
-        paddleCostText.setText('"P" to upgrade paddle for ' + paddleCost + ' coins');
+        paddleCostText.setText('"P" | paddle |' + paddleCost + 'c');
     }
 }
 
@@ -937,7 +937,7 @@ function buyLive() {
         coins -= liveCost;
         pacman.lives++;
         liveCost *= 2;
-        liveCostText.setText('"O" to buy shield for ' + liveCost + ' coins');
+        liveCostText.setText('"O" | shield |' +  liveCost + 'c');
     }
     updateShieldOverlay();
 }
