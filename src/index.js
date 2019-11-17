@@ -31,7 +31,7 @@ const config = {
         default: 'arcade',
         arcade: {
             gravity: {y: 0},
-            debug: true
+            debug: false
         }
     },
     scene: {
@@ -461,7 +461,7 @@ function update() {
 }
 
 function fireCanon() {
-    let shot = this.physics.add.sprite(invadersCanon.x, invadersCanon.y - invadersCanon.height / 2 - 5, 'canonShot');
+    let shot = this.physics.add.sprite(invadersCanon.x, invadersCanon.y - invadersCanon.height / 2 - 7, 'canonShot');
     shot.setVelocity(0, -1000);
     canonShotsGroup.add(shot);
     let monsters = invadersMonstersGroup.children.entries;
