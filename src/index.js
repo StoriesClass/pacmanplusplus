@@ -11,8 +11,8 @@ import canonShotSprite from "./assets/canon_shot.png";
 import bigDot from "./assets/big_dot.png";
 
 const CELL = 40;
-const WIDTH = CELL * 32;
-const HEIGHT = CELL * 25;
+const WIDTH = CELL*38;
+const HEIGHT = CELL*25;
 const PACSIZE = 36;
 
 const PADDLE_WIDTH = 20;
@@ -54,10 +54,12 @@ let invadersCanon;
 let marioJumping = false;
 let marioCanJump = true;
 
+let pongBallSpeed = 500;
+
 let invadersMonstersGroup;
 let canonShotsGroup;
 
-const LEFT = CELL * 4;
+const LEFT = CELL * 6;
 const RIGHT = CELL * 6;
 const OBSTACLE = '*';
 const FREE = ' ';
@@ -187,7 +189,7 @@ function create() {
     this.anims.create({
         key: 'marioJump',
         frames: this.anims.generateFrameNumbers('marioSheet', {start: 1, end: 0}),
-        frameRate: 20,
+        frameRate: 10,
         repeat: 0
     });
 
@@ -195,7 +197,8 @@ function create() {
     input = this.input.mousePointer;
 
     scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
-    coinsText = this.add.text(600, 16, 'coins: 0', {fontSize: '32px', fill: '#fff'});
+    coinsText = this.add.text(WIDTH - 200, 16, 'coins: 0', {fontSize: '32px', fill: '#fff'});
+
     aiPaddle = this.physics.add.sprite(10, 300, 'pongPaddle');
     aiPaddle.setCollideWorldBounds(true);
     aiPaddle.setBounce(1);
@@ -203,10 +206,6 @@ function create() {
     userPaddle.setCollideWorldBounds(true);
     userPaddle.setBounce(1);
     userPaddle.setDisplaySize(PADDLE_WIDTH, paddleLength);
-    pongBall = this.physics.add.sprite(35, 300, 'pongBall');
-    pongBall.setCollideWorldBounds(true);
-    pongBall.setVelocity(1000, 200);
-    pongBall.setBounce(1);
     invadersCanon = this.physics.add.sprite(WIDTH / 2, HEIGHT - 30 / 2, 'invadersCanon');
 
     invadersMonstersGroup = this.physics.add.staticGroup();
@@ -219,13 +218,19 @@ function create() {
         loop: true
     });
 
-    mario = this.add.sprite(200, 400, 'marioSheet');
-    mario.setDisplaySize(CELL, CELL * 4);
+    mario = this.add.sprite(WIDTH - CELL * 3, HEIGHT - CELL * 5, 'marioSheet');
+    mario.setDisplaySize(CELL * 2, CELL * 8);
     mario.on('animationcomplete', marioFinishesJumping, this);
 
     // order matters!
     initWorld.call(this);
     initGhosts.call(this);
+
+    pongBall = this.physics.add.sprite(35, 300, 'pongBall');
+    pongBall.setCollideWorldBounds(true);
+    pongBall.setVelocity(pongBallSpeed, 0);
+    pongBall.setBounce(1);
+
     setColliders.call(this);
 
     this.add.text(32, 550, '"P" to upgrade paddle for ' + PADDLE_COST + ' coins', {fontSize: '20px', fill: '#fff'});
@@ -251,9 +256,22 @@ function setColliders() {
     this.physics.add.collider(pacman, tilesGroup);
     this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
     this.physics.add.collider(pacman, ghostsGroup, collideWithGhost, null, this);
-    this.physics.add.collider(aiPaddle, pongBall);
-    this.physics.add.collider(userPaddle, pongBall);
+    this.physics.add.collider(aiPaddle, pongBall, pongBounce, null, this);
+    this.physics.add.collider(userPaddle, pongBall, pongBounce, null, this);
     this.physics.add.collider(pongBall, pacman, null, ballHitPacman, this);
+}
+
+function pongBounce(paddle, ball) {
+    let hitPos = ((paddle.body.y + aiPaddle.height / 2) - (ball.body.y + pongBall.height / 2)) / (aiPaddle.height / 2);
+    let angle = hitPos * (Math.PI * 5 / 12);
+    if (ball.body.x < WIDTH / 2) {
+        ball.body.velocity.x = pongBallSpeed * Math.cos(angle);
+    } else {
+        ball.body.velocity.x = -pongBallSpeed * Math.cos(angle);
+    }
+    ball.body.velocity.y = 1000 * -Math.sin(angle);
+    paddle.body.velocity.x = 0;
+    paddle.body.velocity.y = 0;
 }
 
 function gameOver() {
@@ -496,7 +514,7 @@ function makeObjectAtCell(x, y, group, key) {
 }
 
 function initGhost(x, y) {
-    const ghost = this.physics.add.sprite(LEFT + x * CELL + CELL / 2, RIGHT + y * CELL + CELL / 2, 'pacmanSheet');
+    const ghost = this.physics.add.sprite(LEFT + x * CELL + CELL / 2, y * CELL + CELL / 2, 'pacmanSheet');
     ghost.myAnim = {
         'left': 'red_left',
         'right': 'red_right',
