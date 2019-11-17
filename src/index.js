@@ -469,7 +469,14 @@ function update() {
     moveObject(pacman);
     handleKeyboard();
     handleMouse();
+    checkBallBoundaries.call(this);
     // start
+}
+
+function checkBallBoundaries() {
+    if (pongBall.body.x + pongBall.width > WIDTH - 1) {
+        gameOver.call(this);
+    }
 }
 
 function fireCanon() {
