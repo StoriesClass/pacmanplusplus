@@ -228,6 +228,9 @@ function create() {
         loop: true
     });
 
+    this.cameras.main.setBackgroundColor('#1e1e1e');
+
+
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.mousePointer;
 
