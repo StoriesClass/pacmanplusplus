@@ -204,19 +204,6 @@ function create() {
         repeat: 0
     });
 
-    let particles = this.add.particles('flares');
-
-    let emitter = particles.createEmitter({
-        frame: 'yellow',
-        radial: false,
-        lifespan: 2000,
-        speedX: { min: 200, max: 400 },
-        quantity: 4,
-        gravityY: -50,
-        scale: { start: 0.6, end: 0, ease: 'Power3' },
-        blendMode: 'ADD'
-    });
-
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.mousePointer;
 
@@ -261,8 +248,6 @@ function create() {
     pongBall.setVelocity(pongBallSpeed, 0);
     pongBall.setBounce(1);
 
-    emitter.startFollow(pongBall);
-
     setColliders.call(this);
 
     paddleCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 60, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {
@@ -271,6 +256,18 @@ function create() {
     });
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
 
+    let particles = this.add.particles('flares');
+    let emitter = particles.createEmitter({
+        frame: 'yellow',
+        radial: false,
+        lifespan: 2000,
+        speedX: { min: 200, max: 400 },
+        quantity: 2,
+        gravityY: -50,
+        scale: { start: 0.6, end: 0, ease: 'Power3' },
+        blendMode: 'ADD'
+    });
+    emitter.startFollow(pongBall);
 }
 
 function updateInvadersMonsters() {
