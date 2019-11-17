@@ -12,9 +12,6 @@ import bigDot from "./assets/big_dot.png";
 import flaresPng from "./assets/particles/flares.png";
 import flaresJson from "./assets/particles/flares.json";
 
-import flaresPng from "./assets/flares.png";
-import flaresJson from "./assets/flares.json";
-
 const CELL = 40;
 const WIDTH = CELL * 38;
 const HEIGHT = CELL * 32;
@@ -210,7 +207,7 @@ function create() {
     let particles = this.add.particles('flares');
 
     let emitter = particles.createEmitter({
-        frame: 'blue',
+        frame: 'yellow',
         radial: false,
         lifespan: 2000,
         speedX: { min: 200, max: 400 },
