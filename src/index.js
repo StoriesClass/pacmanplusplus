@@ -75,7 +75,7 @@ let world = [
     "* *   *  d* *   *     * *",
     "* *** * *** ********* * *",
     "*   *   *   *        *  *",
-    "*** ***** *** *** * *** *",
+    "*** ** ** *** *** * *** *",
     "*   *   *   * * * *     *",
     "* ***** *** * * * * *****",
     "*  g      *    g* *     *",
@@ -93,9 +93,9 @@ let world = [
     "*       *   *** * *   * *",
     "* *** * * ***   * *** * *",
     "*   * ***   ***   *     *",
-    "* *   *   *     *   *   *",
+    "* *       *     *   *   *",
     "* *** ******* *** ***** *",
-    "*   *                   *",
+    "*                       *",
     "*************************"
 ];
 
@@ -224,7 +224,7 @@ function create() {
         loop: true
     });
 
-    mario = this.add.sprite(WIDTH - CELL * 3, HEIGHT - CELL * 5, 'marioSheet');
+    mario = this.add.sprite(WIDTH - CELL * 3.5, HEIGHT - CELL * 5, 'marioSheet');
     mario.setDisplaySize(CELL * 2, CELL * 8);
     mario.on('animationcomplete', marioFinishesJumping, this);
 
@@ -239,7 +239,7 @@ function create() {
 
     setColliders.call(this);
 
-    paddleCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 70, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {
+    paddleCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 60, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {
         fontSize: '30px',
         fill: '#fff'
     });
@@ -431,6 +431,7 @@ function update() {
     moveObject(pacman);
     handleKeyboard();
     handleMouse();
+    // start
 }
 
 function fireCanon() {
@@ -564,23 +565,11 @@ function canGo(gameObject) {
 }
 
 function handleMouse() {
-    if (Math.abs(input.y - userPaddle.body.y - userPaddle.height / 2) < 50) {
-        userPaddle.body.velocity.y = 0;
-        userPaddle.body.y = input.y - userPaddle.height / 2;
-    } else {
-        userPaddle.body.velocity.y = (input.y - userPaddle.body.y - userPaddle.height / 2) * 100;
-        userPaddle.body.velocity.y = Math.min(userPaddle.body.velocity.y, 10000);
-        userPaddle.body.velocity.y = Math.max(userPaddle.body.velocity.y, -10000);
-    }
+    userPaddle.body.velocity.y = 0;
+    userPaddle.body.y = input.y - userPaddle.height / 2;
 
-    if (Math.abs(input.x - invadersCanon.body.x - invadersCanon.width / 2) < 50) {
-        invadersCanon.body.velocity.x = 0;
-        invadersCanon.body.x = input.x - invadersCanon.width / 2;
-    } else {
-        invadersCanon.body.velocity.x = (input.x - invadersCanon.body.x - invadersCanon.width / 2) * 100;
-        invadersCanon.body.velocity.x = Math.min(invadersCanon.body.velocity.x, 10000);
-        invadersCanon.body.velocity.x = Math.max(invadersCanon.body.velocity.x, -10000);
-    }
+    invadersCanon.body.velocity.x = 0;
+    invadersCanon.body.x = input.x - invadersCanon.width / 2;
 }
 
 function makeObjectAtCell(x, y, group, key) {
