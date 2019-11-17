@@ -11,6 +11,8 @@ import canonShotSprite from "./assets/canon_shot.png";
 import bigDot from "./assets/big_dot.png";
 import flaresPng from "./assets/particles/flares.png";
 import flaresJson from "./assets/particles/flares.json";
+import gameOverPic from "./assets/game_over.png";
+import shieldOverlay from "./assets/shieldOverlay.png";
 
 const CELL = 40;
 const WIDTH = CELL * 38;
@@ -20,7 +22,7 @@ const PACSIZE = 32;
 const PADDLE_WIDTH = 20;
 const PADDLE_LENGTH_DELTA = 50;
 const BASE_PADDLE_COST = 10;
-
+const BASE_LIVE_COST = 10;
 
 const config = {
     type: Phaser.AUTO,
@@ -56,6 +58,8 @@ let pongBall;
 let invadersCanon;
 let marioJumping = false;
 let marioCanJump = true;
+
+let gameOverSign;
 
 let pongBallSpeed = 500;
 
@@ -121,7 +125,10 @@ let multiplier = 1;
 
 let paddleLength = 120;
 let paddleCostText;
+let liveCostText;
 let paddleCost = BASE_PADDLE_COST;
+let liveCost = BASE_LIVE_COST;
+let shieldSprite;
 
 function preload() {
     this.load.spritesheet('pacmanSheet', pacmanSheet, {frameWidth: 14, frameHeight: 14});
@@ -135,6 +142,8 @@ function preload() {
     this.load.image('invadersCanon', invadersCanonSprite);
     this.load.image('canonShot', canonShotSprite);
     this.load.image('bigDot', bigDot);
+    this.load.image('gameOver', gameOverPic);
+    this.load.image('shieldOverlay', shieldOverlay);
 
     this.load.atlas('flares', flaresPng, flaresJson);
 }
@@ -225,6 +234,9 @@ function create() {
     scoreText = this.add.text(32, 16, 'score: 0', {fontSize: '32px', fill: '#fff'});
     coinsText = this.add.text(WIDTH - 230, 16, 'coins: 0', {fontSize: '32px', fill: '#fff'});
 
+    shieldSprite = this.add.sprite(1000, 600, 'shieldOverlay');
+    shieldSprite.setAlpha(0);
+
     aiPaddle = this.physics.add.sprite(10, 300, 'pongPaddle');
     aiPaddle.setCollideWorldBounds(true);
     aiPaddle.setBounce(1);
@@ -269,7 +281,12 @@ function create() {
         fontSize: '30px',
         fill: '#fff'
     });
+    liveCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 120, '"O" to buy shield for ' +  BASE_LIVE_COST + ' coins', {
+        fontSize: '30px',
+        fill: '#fff'
+    });
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
+    this.input.keyboard.on('keydown_O', buyLive, this);
 
     let particles = this.add.particles('flares');
     let emitter = particles.createEmitter({
@@ -284,6 +301,8 @@ function create() {
     });
     emitter.startFollow(pongBall);
 
+    gameOverSign = this.physics.add.sprite(WIDTH / 2, HEIGHT / 2, 'gameOver');
+    gameOverSign.setScale(0);
 }
 
 function updateInvadersMonsters() {
@@ -340,6 +359,7 @@ function initPacman(x, y) {
     // A hack so pacman can easily can get between the tiles
     pacman.setDisplaySize(PACSIZE, PACSIZE);
     pacman.direction = Direction.down;
+    pacman.lives = 1;
     pacman.myAnim = {
         'left': 'left',
         'right': 'right',
@@ -377,8 +397,18 @@ function pongBounce(paddle, ball) {
 }
 
 function gameOver() {
-    console.log("gg");
-    this.physics.pause();
+    console.log("lost live/shield");
+    pacman.lives--;
+    if (pacman.lives === 0) {
+        this.physics.pause();
+        gameOverSign.setScale(1.8);
+        console.log("gg");
+    }
+    updateShieldOverlay();
+}
+
+function updateShieldOverlay() {
+    shieldSprite.setAlpha((pacman.lives-1)/5);
 }
 
 function ballHitPacman() {
@@ -424,6 +454,7 @@ function collideWithGhost(pacman, ghost) {
     console.log("colliding with a ghost");
     if (ghost.ghostMode === GhostMode.normal) {
         gameOver.call(this);
+        ghost.disableBody(true, true);
     } else if (ghost.ghostMode === GhostMode.scared) {
         eatGhost.call(this, ghost);
         //spawnGhost.call(this);
@@ -785,4 +816,14 @@ function upgradePaddle() {
         paddleCost += BASE_PADDLE_COST;
         paddleCostText.setText('"P" to upgrade paddle for ' + paddleCost + ' coins');
     }
+}
+
+function buyLive() {
+    if (coins >= liveCost) {
+        coins -= liveCost;
+        pacman.lives++;
+        liveCost *= 2;
+        liveCostText.setText('"O" to buy shield for ' + liveCost + ' coins');
+    }
+    updateShieldOverlay();
 }
