@@ -8,10 +8,11 @@ import pongBallSprite from "./assets/pong_ball.png";
 import invadersMonsterSprite from "./assets/invaders_monster.png";
 import invadersCanonSprite from "./assets/invaders_canon.png";
 import canonShotSprite from "./assets/canon_shot.png";
+import bigDot from "./assets/big_dot.png";
 
 const CELL = 40;
-const WIDTH = CELL*32;
-const HEIGHT = CELL*25;
+const WIDTH = CELL * 32;
+const HEIGHT = CELL * 25;
 const PACSIZE = 36;
 
 const PADDLE_WIDTH = 20;
@@ -59,14 +60,16 @@ let canonShotsGroup;
 const LEFT = CELL * 4;
 const RIGHT = CELL * 6;
 const OBSTACLE = '*';
-const FREE = '.';
+const FREE = ' ';
 const GHOST = 'g';
+const PACMAN = 'p';
+const BIG_DOT = 'd';
 let world = [
     "*     *       *         *",
-    "* * *** *** * * ******* *",
-    "* *   *   * *   *     * *",
+    "* * ***p*** * * ******* *",
+    "* *   *  d* *   *     * *",
     "* *** * *** ********* * *",
-    "*   *   *   *     *   * *",
+    "*   *   *   *        * *",
     "*** ***** *** *** * *** *",
     "*   *   *   * * * *     *",
     "* ***** *** * * * * *****",
@@ -91,11 +94,14 @@ let world = [
     "* *   *   *     *   *   *",
     "* *** ******* *** ***** *",
     "*   *                  **"
-] ;
+];
 
 const Direction = {"up": 1, "down": 2, "left": 3, "right": 4};
+const GhostMode = {"normal": 1, "scared": 2};
+const BigDotMode = {"small": 1, "large": 2}; // TODO
 // making enum
 Object.freeze(Direction);
+Object.freeze(GhostMode);
 
 let tilesGroup;
 let dotsGroup;
@@ -116,6 +122,7 @@ function preload() {
     this.load.image('invadersMonster', invadersMonsterSprite);
     this.load.image('invadersCanon', invadersCanonSprite);
     this.load.image('canonShot', canonShotSprite);
+    this.load.image('bigDot', bigDot);
 }
 
 function initGhosts() {
@@ -146,7 +153,6 @@ function initGhosts() {
         frameRate: 2,
         repeat: -1
     });
-
 }
 
 function create() {
@@ -185,18 +191,6 @@ function create() {
         repeat: 0
     });
 
-    pacman = this.physics.add.sprite(CELL * 2.5, CELL * 2.5, 'pacmanSheet');
-    pacman.play('right');
-    pacman.setCollideWorldBounds(true);
-    // A hack so pacman can easily can get between the tiles
-    pacman.setDisplaySize(PACSIZE, PACSIZE);
-    pacman.direction = Direction.down;
-    pacman.myAnim = {
-        'left': 'left',
-        'right': 'right',
-        'up': 'up',
-        'down': 'down'
-    };
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.mousePointer;
 
@@ -238,6 +232,21 @@ function create() {
     this.input.keyboard.on('keydown_P', upgradePaddle, this);
 }
 
+function initPacman(x, y) {
+    pacman = this.physics.add.sprite(CELL * x + CELL / 2, CELL * y + CELL / 2, 'pacmanSheet');
+    pacman.play('right');
+    pacman.setCollideWorldBounds(true);
+    // A hack so pacman can easily can get between the tiles
+    pacman.setDisplaySize(PACSIZE, PACSIZE);
+    pacman.direction = Direction.down;
+    pacman.myAnim = {
+        'left': 'left',
+        'right': 'right',
+        'up': 'up',
+        'down': 'down'
+    };
+}
+
 function setColliders() {
     this.physics.add.collider(pacman, tilesGroup);
     this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
@@ -260,9 +269,45 @@ function eatDot(pacman, dot) {
     dot.disableBody(true, true);
     score += multiplier;
 }
+function eatBigDot(pacman, bigDot) {
+    bigDot.disableBody(true, true);
+    score += multiplier * 10;
+
+    forEachGhost(g => {
+        g.mode = GhostMode.scared;
+        g.setTint(0x00ff00);
+    });
+
+    this.time.addEvent({
+        delay: 10000,
+        callback: () => {
+            forEachGhost(g => {
+                g.mode = GhostMode.normal;
+                g.setTint(0xffffff);
+            });
+        },
+        callbackScope: this,
+        loop: false
+    })
+}
+
+function forEachGhost(callback) {
+    const gs = ghostsGroup.children.entries;
+    for (let i = 0; i < gs.length; i++) {
+        callback(gs[i]);
+    }
+}
 
 function collideWithGhost(pacman, ghost) {
-    // TODO
+    if (ghost.ghostMode === GhostMode.normal) {
+        gameOver();
+    } else if (ghost.ghostMode === GhostMode.scared) {
+        eatGhost(ghost);
+    }
+}
+
+function eatGhost(ghost) {
+    ghost.disableBody(true, true);
 }
 
 function updateScore() {
@@ -283,6 +328,7 @@ function updateGhosts() {
         moveObject(gs[i]);
     }
 }
+
 function changeGhostDirection(g) {
     g.nextDirection = getDirectionForGhost(g);
     if (canGo(g)) {
@@ -339,20 +385,20 @@ const PACSPEED = 3;
 function moveObject(object) {
     const direction = object.direction;
     if (direction === Direction.left) {
-        object.setVelocityX(-CELL*PACSPEED);
+        object.setVelocityX(-CELL * PACSPEED);
         object.setVelocityY(0);
         object.anims.play(object.myAnim.left, true);
     } else if (direction === Direction.right) {
-        object.setVelocityX(CELL*PACSPEED);
+        object.setVelocityX(CELL * PACSPEED);
         object.setVelocityY(0);
         object.anims.play(object.myAnim.right, true);
     } else if (direction === Direction.down) {
         object.setVelocityX(0);
-        object.setVelocityY(CELL*PACSPEED);
+        object.setVelocityY(CELL * PACSPEED);
         object.anims.play(object.myAnim.down, true);
     } else if (direction === Direction.up) {
         object.setVelocityX(0);
-        object.setVelocityY(-CELL*PACSPEED);
+        object.setVelocityY(-CELL * PACSPEED);
         object.anims.play(object.myAnim.up, true);
     }
 }
@@ -462,6 +508,7 @@ function initGhost(x, y) {
     ghost.setDisplaySize(PACSIZE, PACSIZE);
     ghost.direction = Direction.up;
     ghost.setCollideWorldBounds();
+    ghost.ghostMode = GhostMode.normal;
 
     ghostsGroup.add(ghost);
 
@@ -473,6 +520,12 @@ function initGhost(x, y) {
     });
 
     this.physics.add.collider(ghost, tilesGroup, null, () => changeGhostDirection(ghost), this);
+}
+
+function initBigDot(x, y) {
+    const bigDot = this.physics.add.sprite(x * CELL + CELL / 2,  y * CELL + CELL / 2, 'bigDot');
+
+    this.physics.add.collider(pacman, bigDot, null, eatBigDot, this);
 }
 
 // creates and draws the physics world (pWorld)
@@ -489,6 +542,10 @@ function initWorld() {
                 makeObjectAtCell(j, i, dotsGroup, 'dot');
             } else if (row[j] === GHOST) {
                 initGhost.call(this, j, i)
+            } else if (row[j] === PACMAN) {
+                initPacman.call(this, j, i);
+            } else if (row[j] === BIG_DOT) {
+                initBigDot.call(this, j, i);
             }
         }
     }
