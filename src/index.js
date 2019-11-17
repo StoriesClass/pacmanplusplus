@@ -381,6 +381,41 @@ function setColliders() {
 
 function monsterGotShot(monster, shot) {
     monster.disableBody(true, true);
+    let particles = this.add.particles('flares');
+    let emitter = particles.createEmitter({
+        x: monster.x,
+        y: monster.y,
+        quantity: 1,
+        frame: 'red',
+        radial: true,
+        lifespan: 400,
+        speed: 100,
+        scale:  0.2,
+        blendMode: 'ADD'
+    });
+
+    let alpha = 1;
+
+    this.time.addEvent({
+        delay: 100,
+        callback: () => {
+            alpha -= 0.2;
+            emitter.setAlpha(alpha);
+        },
+        callbackScope: this,
+        loop: true,
+        repeat: 5
+    });
+
+    this.time.addEvent({
+        delay: 500,
+        callback: () => {
+            particles.destroy();
+        },
+        callbackScope: this,
+        loop: false
+    });
+
     shot.particles.destroy();
     shot.disableBody(true, true);
     invadersCount--;
