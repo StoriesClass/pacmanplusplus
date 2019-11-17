@@ -17,7 +17,7 @@ import shieldOverlay from "./assets/shieldOverlay.png";
 
 const CELL = 40;
 const WIDTH = CELL * 38;
-const HEIGHT = CELL * 32;
+const HEIGHT = CELL * 34;
 const PACSIZE = 32;
 
 const PADDLE_WIDTH = 20;
@@ -289,15 +289,15 @@ function create() {
 
     setColliders.call(this);
 
-    paddleCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 60, '"P" to upgrade paddle for ' + BASE_PADDLE_COST + ' coins', {
+    paddleCostText = this.add.text(WIDTH / 2 - 550, HEIGHT - 120, '"P" | paddle |' + BASE_PADDLE_COST + 'c', {
         fontSize: '30px',
         fill: '#fff'
     });
-    liveCostText = this.add.text(WIDTH / 2 - 300, HEIGHT - 120, '"O" to buy shield for ' +  BASE_LIVE_COST + ' coins', {
+    liveCostText = this.add.text(WIDTH / 2 - 170, HEIGHT - 120, '"O" | shield |' +  BASE_LIVE_COST + 'c', {
         fontSize: '30px',
         fill: '#fff'
     });
-    smallCannonsText = this.add.text(WIDTH / 2 - 300, HEIGHT - 180, '"I" to buy cannons for ' +  smallCannonsCost + ' coins', {
+    smallCannonsText = this.add.text(WIDTH / 2 + 200, HEIGHT - 120, '"I" | cannons |' +  smallCannonsCost + 'c', {
         fontSize: '30px',
         fill: '#fff'
     });
