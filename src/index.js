@@ -64,6 +64,7 @@ let canonShotsGroup;
 
 let invadersHorSlot = 0;
 let invadersMoveRight = true;
+let invadersCount = 0;
 
 const LEFT_OFFSET = CELL * 6;
 const TOP_OFFSET = CELL * 2;
@@ -258,11 +259,11 @@ function create() {
 }
 
 function updateInvadersMonsters() {
-    let invaders = invadersMonstersGroup.children.entries;
-    if (invaders.length === 0) {
+    if (invadersCount === 0) {
         spawnInvaders.call(this);
         return;
     }
+    let invaders = invadersMonstersGroup.children.entries;
     if (invadersHorSlot === 8) {
         for (let i = 0; i < invaders.length; i++) {
             invaders[i].y += 30;
@@ -282,12 +283,17 @@ function updateInvadersMonsters() {
 }
 
 function spawnInvaders() {
+    let shots = canonShotsGroup.children.entries;
     for (let j = 0; j < 3; j++) {
         for (let i = 0; i < 12; i++) {
             let monster = this.physics.add.sprite(300 + i * 60, 100 + j * 50, 'invadersMonster');
             invadersMonstersGroup.add(monster);
+            for (let k = 0; k < shots.length; k++) {
+                this.physics.add.collider(monster, shots[k], monsterGotShot, null, this);
+            }
         }
     }
+    invadersCount = 36;
 }
 
 function initPacman(x, y) {
@@ -310,7 +316,13 @@ function setColliders() {
     this.physics.add.collider(pacman, dotsGroup, eatDot, null, this);
     this.physics.add.collider(aiPaddle, pongBall, pongBounce, null, this);
     this.physics.add.collider(userPaddle, pongBall, pongBounce, null, this);
-    this.physics.add.collider(pongBall, pacman, null, ballHitPacman, this);
+    this.physics.add.collider(pongBall, pacman, ballHitPacman, null, this);
+}
+
+function monsterGotShot(monster, shot) {
+    monster.disableBody(true, true);
+    shot.disableBody(true, true);
+    invadersCount--;
 }
 
 function pongBounce(paddle, ball) {
@@ -451,7 +463,11 @@ function update() {
 function fireCanon() {
     let shot = this.physics.add.sprite(invadersCanon.x, invadersCanon.y - invadersCanon.height / 2 - 5, 'canonShot');
     shot.setVelocity(0, -1000);
-    // shot.setCollideWorldBounds(true);
+    canonShotsGroup.add(shot);
+    let monsters = invadersMonstersGroup.children.entries;
+    for (let i = 0; i < monsters.length; i++) {
+        this.physics.add.collider(monsters[i], shot, monsterGotShot, null, this);
+    }
 }
 
 function updateAiPaddle() {
