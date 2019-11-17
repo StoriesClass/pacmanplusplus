@@ -204,6 +204,20 @@ function create() {
         repeat: 0
     });
 
+    this.time.addEvent({
+        delay: 5000,
+        callback: () => spawnCreature.call(this, initGhost),
+        callbackScope: this,
+        loop: true
+    });
+
+    this.time.addEvent({
+        delay: 15000,
+        callback: () => spawnCreature.call(this, initBigDot),
+        callbackScope: this,
+        loop: true
+    });
+
     cursors = this.input.keyboard.createCursorKeys();
     input = this.input.mousePointer;
 
@@ -268,6 +282,7 @@ function create() {
         blendMode: 'ADD'
     });
     emitter.startFollow(pongBall);
+
 }
 
 function updateInvadersMonsters() {
@@ -400,12 +415,12 @@ function collideWithGhost(pacman, ghost) {
         gameOver.call(this);
     } else if (ghost.ghostMode === GhostMode.scared) {
         eatGhost.call(this, ghost);
-        spawnGhost.call(this);
+        //spawnGhost.call(this);
     }
 }
 
 // This is very bad
-function spawnGhost() {
+function spawnCreature(callback) {
     let freeSpace = 0;
     for (let i = 0; i < world.length; i++) {
         const row = world[i];
@@ -422,7 +437,7 @@ function spawnGhost() {
             if (row[j] === FREE) {
                 newGhostPos--;
                 if (newGhostPos === 0) {
-                    initGhost.call(this, j, i);
+                    callback.call(this, j, i);
                     return;
                 }
             }
@@ -432,6 +447,7 @@ function spawnGhost() {
 
 function eatGhost(ghost) {
     ghost.disableBody(true, true);
+    score += 10;
 }
 
 function updateScore() {
