@@ -224,7 +224,7 @@ function create() {
         loop: true
     });
 
-    mario = this.add.sprite(WIDTH - CELL * 1.5, HEIGHT - CELL * 3, 'marioSheet');
+    mario = this.add.sprite(WIDTH - CELL * 3, HEIGHT - CELL * 3, 'marioSheet');
     mario.setDisplaySize(CELL, CELL * 4);
     mario.on('animationcomplete', marioFinishesJumping, this);
 
