@@ -1,3 +1,6 @@
+# IMPORTANT, about demo
+Unfortunately, our domain died, please check out the demo at https://wackloner-zent.localhost.run/
+
 # Pacman++
 Junction 2019 project.
 
